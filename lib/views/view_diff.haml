@@ -1,0 +1,30 @@
+- extends 'header.haml'
+
+- block content
+
+    %del
+        Red
+    lines are present in database (not repository) and will be removed.
+    %br
+    %ins
+        Green
+    lines are present in repository (not database) and will be applied.
+    %br
+    %br
+
+    %table.table
+        %tr
+            %td{ :width => "100%"}
+                %div.pre<>
+                    = aDiff['in_database'] | raw
+
+
+
+
+
+
+
+
+
+
+

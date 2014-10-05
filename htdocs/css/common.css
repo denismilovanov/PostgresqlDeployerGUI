@@ -1,0 +1,93 @@
+body {
+    padding: 20px;
+}
+
+.color-red {
+    color: red;
+}
+
+.container {
+    margin-left: 0px;
+}
+
+.commits td {
+    padding: 2px;
+    vertical-align: middle;
+}
+
+.commit {
+    cursor: pointer;
+}
+
+.commit-active {
+    font-weight: bold;
+}
+
+table {
+    table-layout: fixed;
+}
+
+.pre {
+    font-family: Courier;
+    white-space: pre;
+}
+
+ins, del{
+    text-decoration: none;
+}
+
+ins {
+    color: green;
+}
+
+del {
+    color: red;
+}
+
+.item {
+}
+
+.item-name {
+    width: 40%;
+    border-right: 1px silver dotted;
+}
+
+.item-dependent-name {
+    border-right: 1px silver dotted;
+    padding-left: 100px;
+}
+
+.item-view-diff {
+    width: 20%;
+    border-right: 1px silver dotted;
+    cursor: pointer;
+}
+
+.item-view-dependencies {
+    width: 20%;
+    border-right: 1px silver dotted;
+    cursor: pointer;
+}
+
+.item-apply {
+    width: 20%;
+    cursor: pointer;
+}
+
+.table-diff {
+    table-layout: fixed;
+}
+
+.semi-link  {
+    border-bottom: 1px dashed silver;
+    cursor: pointer;
+}
+
+.solid-link  {
+    border-bottom: 1px solid silver;
+    cursor: pointer;
+}
+
+.label {
+    font-size: 100%;
+}

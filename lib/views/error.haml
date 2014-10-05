@@ -1,0 +1,49 @@
+- extends 'header.haml'
+
+- block content
+
+    -if sError == 'no_databases'
+
+        %h2
+            There are no databases.
+
+        %p
+            There is no information about databases in config file so we cannot do anything.
+
+    -elseif sError == 'same_databases'
+
+        %h2
+            Same databases.
+        %p
+            There are two same databases in config files.
+            It is very unpleasant situation, please fix it.
+
+    -elseif sError == 'no_postgresql_deployer_schema'
+
+        %h2
+            There is no PostgreSQL Deployer schema in database.
+        %p
+
+
+    -elseif sError == 'error'
+
+        %h2
+            Error.
+        %p
+            = sErrorMessage
+
+    -else
+
+        %h2
+            Unknown error.
+
+
+
+
+
+
+
+
+
+
+

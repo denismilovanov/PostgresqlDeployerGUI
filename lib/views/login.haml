@@ -1,0 +1,39 @@
+- extends 'header.haml'
+
+- block content
+
+    :javascript
+
+        $(window).ready(function() {
+
+        });
+
+    %form{ :action => "?", :method => "post" }
+        .panel.panel-default{ :style => "width: 40%; margin: 0 auto;" }
+            .panel-heading
+                Authotization required (for database #{sDatabaseName})
+            .panel-body
+                %input.form-control{ :name => "email", :type => "text", :placeholder => "e-mail", :value => "#{sEmail}" }
+                %br
+                %input.form-control{ :name => "password", :type => "password", :placeholder => "password" }
+                %br
+                %button.btn.btn-default{ :type => "submit" }
+                    Authorize me
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

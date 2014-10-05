@@ -1,0 +1,72 @@
+!!!
+%html
+
+    %head
+        %title
+            PostgreSQL Deployer
+
+        %link{ :rel => "stylesheet", :href => "https://maxcdn.bootstrapcdn.com/bootstrap/3.2.0/css/bootstrap.min.css" }
+        %link{ :rel => "stylesheet", :href => "https://maxcdn.bootstrapcdn.com/bootstrap/3.2.0/css/bootstrap-theme.min.css" }
+        %link{ :rel => "stylesheet", :href => "/css/common.css" }
+
+        %script{ :src => "//ajax.googleapis.com/ajax/libs/jquery/1.10.2/jquery.min.js" }
+        %script{ :src => "https://maxcdn.bootstrapcdn.com/bootstrap/3.2.0/js/bootstrap.min.js" }
+        %script{ :src => "/js/mustache.js" }
+        %script{ :src => "/js/common.js" }
+
+    %body
+
+        %input#database-name{ :type => "hidden", :value => "#{aCurrentDatabase['index']}"}
+
+        %nav.navbar.navbar-default{:role => "navigation"}
+
+            .container
+
+                .navbar-header
+                    %a.navbar-brand{:href => "/"}
+                        %b
+                            PostgreSQL Deployer
+
+                %ul.nav.navbar-nav
+                    %li.dropdown
+                        %a.dropdown-toggle{"data-toggle" => "dropdown", :href => "#"}<>
+                            Database
+                            %span.caret
+                        %ul.dropdown-menu{:role => "menu"}
+                            - for aDatabase in aDatabases
+                                %li
+                                    %a{:href => "/#{aDatabase['index']}/"}<>
+                                        = aDatabase['name']
+                /%form.navbar-form.navbar-left{:role => "search"}
+                /    .form-group
+                /        %input.form-control{:placeholder => "Search", :type => "text"}/
+                /    %button.btn.btn-default{:type => "submit"} Submit
+                %ul.nav.navbar-nav
+                    -if aCurrentUser['email']
+                        %li.dropdown
+                            %a.dropdown-toggle{"data-toggle" => "dropdown", :href => "#"}<>
+                                =aCurrentUser['email']
+                                %span.caret
+                            %ul.dropdown-menu{:role => "menu"}
+                                %li
+                                    %a{:href => "/#{aCurrentDatabase['index']}/logout/"} Logout
+                                /%li.divider
+                                /%li
+                                /    %a{:href => "#"} User settings
+                        %p.navbar-text
+                            @#{aCurrentDatabase['index']}
+                    /%li
+                    /    %a{:href => "/settings/"} Global settings
+
+
+
+
+
+        - block content
+            #dummy
+
+
+
+
+
+
