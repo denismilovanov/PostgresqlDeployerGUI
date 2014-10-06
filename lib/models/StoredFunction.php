@@ -64,7 +64,7 @@ class StoredFunction extends DatabaseObject
                 $sNewSignature != $sOldSignature;
     }
 
-    public function ReturnTypeChanged()
+    public function returnTypeChanged()
     {
         $sNewFunctionBody = $this->sObjectContent;
         $sOldFunctionBody = $this->getObjectContentInDatabase();

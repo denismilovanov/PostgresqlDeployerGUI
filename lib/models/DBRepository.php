@@ -259,7 +259,7 @@ class DBRepository
 
                         if (! $bIsNew) {
                             $bSignatureChanged = $oDatabaseObject->signatureChanged();
-                            $bReturnTypeChanged = $oDatabaseObject->returnTypeChanged();
+                            $bReturnTypeChanged = ($oDatabaseObject instanceof StoredFunction) && $oDatabaseObject->returnTypeChanged();
                         } else {
                             // it has no sense showing it
                             $bSignatureChanged = false;
