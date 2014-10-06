@@ -38,6 +38,19 @@ class StoredFunction extends DatabaseObject
         return $sSignature;
     }
 
+    public function getReturnType($sFunctionBody)
+    {
+        preg_match("~CREATE\s+OR\s+REPLACE\s+FUNCTION.+?\((.*?)\)\s*RETURNS(.+?)\sAS~uixs", $sFunctionBody, $aMatches);
+        if (isset($aMatches[2])) {
+            $sReturnType = $aMatches[2];
+            $sReturnType = trim($sReturnType);
+            $sReturnType = preg_replace("~\s+~uixs", " ", $sReturnType);
+        } else {
+            return false;
+        }
+        return $sReturnType;
+    }
+
     public function signatureChanged()
     {
         $sNewFunctionBody = $this->sObjectContent;
@@ -51,13 +64,26 @@ class StoredFunction extends DatabaseObject
                 $sNewSignature != $sOldSignature;
     }
 
+    public function ReturnTypeChanged()
+    {
+        $sNewFunctionBody = $this->sObjectContent;
+        $sOldFunctionBody = $this->getObjectContentInDatabase();
+
+        $sNewReturnType = $this->getReturnType($sNewFunctionBody);
+        $sOldReturnType = $this->getReturnType($sOldFunctionBody);
+
+        return  $sNewReturnType === false or
+                $sOldReturnType === false or
+                $sNewReturnType != $sOldReturnType;
+    }
+
     public function applyObject()
     {
         if (self::$bImitate) {
             return;
         }
 
-        if ($this->signatureChanged()) {
+        if ($this->signatureChanged() or $this->returnTypeChanged()) {
             self::$oDB->query("
                 SELECT postgresql_deployer.drop_all_functions_by_name(?w, ?w);
             ",

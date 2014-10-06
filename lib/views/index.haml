@@ -69,6 +69,10 @@
                         %span.label.label-danger
                             Signature changed
                         {{/signature_changed}}
+                        {{#return_type_changed}}
+                        %span.label.label-danger
+                            Return type changed
+                        {{/return_type_changed}}
                         {{#new_object}}
                         %span.label.label-success
                             New object

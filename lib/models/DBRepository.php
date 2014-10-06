@@ -259,9 +259,11 @@ class DBRepository
 
                         if (! $bIsNew) {
                             $bSignatureChanged = $oDatabaseObject->signatureChanged();
+                            $bReturnTypeChanged = $oDatabaseObject->returnTypeChanged();
                         } else {
                             // it has no sense showing it
                             $bSignatureChanged = false;
+                            $bReturnTypeChanged = false;
                         }
 
                         $aSchema['objects'] []= array(
@@ -269,6 +271,7 @@ class DBRepository
                             'dependencies' => $aDependencies,
                             'dependencies_exist' => $aDependencies ? true : null,
                             'signature_changed' => $bSignatureChanged,
+                            'return_type_changed' => $bReturnTypeChanged,
                             'new_object' => $bIsNew,
                         );
                     }
