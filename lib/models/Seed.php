@@ -20,6 +20,10 @@ class Seed extends DatabaseObject
 
     public function applyObject()
     {
+        if (self::$bImitate) {
+            return;
+        }
+
         self::$oDB->query(self::stripTransaction($this->sObjectContent));
     }
 

@@ -20,7 +20,9 @@ class Table extends DatabaseObject
 
     public function applyObject()
     {
-        return true;
+        if (self::$bImitate) {
+            return;
+        }
     }
 
     public function hasChanged($sCurrentHash)

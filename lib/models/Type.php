@@ -58,6 +58,10 @@ class Type extends DatabaseObject
 
     public function applyObject()
     {
+        if (self::$bImitate) {
+            return;
+        }
+
         $aDroppedFunctions = array();
 
         if ($this->signatureChanged()) {

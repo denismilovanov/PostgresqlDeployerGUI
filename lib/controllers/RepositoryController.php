@@ -170,7 +170,7 @@ class RepositoryController {
     // action apply (ajax)
     public function apply(Request $request, Application $app) {
         try {
-            $aResult = DBRepository::apply($app['request']->get('objects'));
+            $aResult = DBRepository::apply($app['request']->get('objects'), (boolean)$app['request']->get('imitate'));
             $aResult['status'] = 1;
         } catch (Exception $e) {
             $aResult['status'] = 0;

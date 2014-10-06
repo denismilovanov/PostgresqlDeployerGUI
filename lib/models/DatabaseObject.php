@@ -8,6 +8,7 @@ abstract class DatabaseObject
     public static $aMigrations;
     public static $sCommitHash;
     public static $iCurrentUserId;
+    public static $bImitate;
 
     private static function getObjectsIndexes()
     {

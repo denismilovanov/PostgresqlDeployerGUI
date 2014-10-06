@@ -13,6 +13,11 @@
             Choose commit, look at the diff, choose objects to be applied and click
             %button.btn.btn-default#apply{ :type => "button" }
                 Apply
+            %div{ :style => "float: right;" }
+                To fill migration table without actual deploying click
+                %button.btn.btn-default#imitate{ :type => "button" }
+                    Imitate
+
 
     / short messages
     #messager.alert{ :role => "alert", :style => "display: none;" }
@@ -114,6 +119,10 @@
 
             $("#apply").click(function() {
                 Git.apply();
+            });
+
+            $("#imitate").click(function() {
+                Git.imitate();
             });
 
         });

@@ -53,6 +53,10 @@ class StoredFunction extends DatabaseObject
 
     public function applyObject()
     {
+        if (self::$bImitate) {
+            return;
+        }
+
         if ($this->signatureChanged()) {
             self::$oDB->query("
                 SELECT postgresql_deployer.drop_all_functions_by_name(?w, ?w);

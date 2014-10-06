@@ -463,11 +463,12 @@ class DBRepository
      * Deploys (applies) given objects to database
      *
      * @param array objects
+     * @param boolean imitate? - fill migration table without performing deployment
      *
      * @return void
      */
 
-    public static function apply($aObjects)
+    public static function apply($aObjects, $bImitate)
     {
         if (! $aObjects) {
             return;
@@ -475,6 +476,9 @@ class DBRepository
 
         // to fill column in migration_log
         DatabaseObject::$sCommitHash = self::$oGit->getHead()->getHash();
+
+        // to remember we need imitation
+        DatabaseObject::$bImitate = $bImitate;
 
         $aTables = array();
         $aTypes = array();

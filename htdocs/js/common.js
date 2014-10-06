@@ -90,7 +90,9 @@ Git = {
         $(".s-" + schema).filter(".o-" + object_index).prop('checked', Git.schemas_objects_states[schema][object_index]);
     },
 
-    apply: function() {
+    apply: function(imitate) {
+        imitate = imitate || false;
+
         var objects = [];
 
         $(".apply").filter(":checked").each(function(n, e) {
@@ -101,13 +103,18 @@ Git = {
             'POST',
             '/' + Git.database_name + '/apply/',
             {
-                objects: objects
+                objects: objects,
+                imitate: imitate ? 1 : 0
             },
             function (data) {
                 Messager.alert(data.status, data.status == 1 ? 'Applied' : data.message);
                 Git.checkout(Git.last_hash);
             }
         );
+    },
+
+    imitate: function() {
+        Git.apply(true);
     },
 
     getCommits: function() {
