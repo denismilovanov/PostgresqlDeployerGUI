@@ -237,7 +237,8 @@ CREATE TABLE IF NOT EXISTS postgresql_deployer.users (
     email varchar(255) NOT NULL UNIQUE,
     password_enc varchar(64),
     salt varchar(32),
-    cookie varchar(32) UNIQUE
+    cookie varchar(32) UNIQUE,
+    last_seen_at timestamp without time zone NULL
 );
 
 ----------------------------------------------------------------------------
@@ -289,7 +290,8 @@ DECLARE
 BEGIN
 
     UPDATE postgresql_deployer.users
-        SET cookie = md5(now()::varchar || password_enc)
+        SET cookie = md5(now()::varchar || password_enc),
+            last_seen_at = now()
         WHERE   email = s_email AND
                 encode(hmac(s_password_given, salt, 'sha256'), 'hex') = password_enc
         RETURNING * INTO r_record;
@@ -314,7 +316,8 @@ BEGIN
 
     SELECT * INTO r_record
         FROM postgresql_deployer.users
-        WHERE cookie = s_cookie;
+        WHERE   cookie = s_cookie AND
+                last_seen_at >= now() - interval '1 day';
 
     RETURN r_record;
 
