@@ -3,9 +3,23 @@ BEGIN;
 ----------------------------------------------------------------------------
 -- create schema to store deployer objects
 
-CREATE SCHEMA IF NOT EXISTS postgresql_deployer;
+CREATE OR REPLACE FUNCTION __temp1() RETURNS varchar AS
+$BODY$
+BEGIN
 
-CREATE EXTENSION IF NOT EXISTS pgcrypto;
+    BEGIN
+        CREATE SCHEMA postgresql_deployer;
+        RETURN 'schema postgresql_deployer created.';
+    EXCEPTION WHEN others THEN NULL; END;
+
+    RETURN 'schema postgresql_deployer already exists.';
+
+END
+$BODY$ LANGUAGE plpgsql VOLATILE;
+
+SELECT __temp1();
+
+DROP FUNCTION __temp1();
 
 ----------------------------------------------------------------------------
 -- types of migrated objects ...
@@ -263,7 +277,7 @@ BEGIN
         INSERT INTO postgresql_deployer.users
             (name, email, password_enc, salt)
             VALUES
-            (s_name, s_email, encode(hmac(s_password, s_salt, 'sha256'), 'hex'), s_salt)
+            (s_name, s_email, md5(s_password || s_salt), s_salt)
             RETURNING id INTO i_user_id;
 
     EXCEPTION WHEN unique_violation THEN
@@ -293,7 +307,7 @@ BEGIN
         SET cookie = md5(now()::varchar || password_enc),
             last_seen_at = now()
         WHERE   email = s_email AND
-                encode(hmac(s_password_given, salt, 'sha256'), 'hex') = password_enc
+                md5(s_password_given || salt) = password_enc
         RETURNING * INTO r_record;
 
     RETURN r_record;
@@ -343,5 +357,6 @@ CREATE TABLE IF NOT EXISTS postgresql_deployer.migration_log (
 ----------------------------------------------------------------------------
 -- that's all
 
-SELECT 'type "COMMIT"';
+SELECT 'type "COMMIT".';
+SELECT 'then "SELECT postgresql_deployer.add_user(name, email, pass);" to create user.';
 
