@@ -9,6 +9,7 @@ class DBRepository
     private static $oDB = null;
     private static $sDirectory = null;
     private static $sDatabase = null;
+    private static $sSchemasPath = 'schemas/';
     public static $sLastStatement = '';
 
     public static $aDatabases = array();
@@ -59,8 +60,6 @@ class DBRepository
     {
         return self::$aDatabases;
     }
-
-
 
     /**
      * Takes index of single database. Returns allowed databases.
@@ -185,7 +184,7 @@ class DBRepository
 
     private static function getSchemas()
     {
-        $aSchemasRaw = self::getListOfFiles(self::$sDirectory . self::$sDatabase, false);
+        $aSchemasRaw = self::getListOfFiles(self::$sDirectory . self::$sSchemasPath, false);
         $aSchemas = array();
 
         foreach ($aSchemasRaw as $sFile) {
@@ -230,7 +229,7 @@ class DBRepository
                 $aSchema['object_index'] = $sObjectIndex;
 
                 // all objects of given type in given schema
-                $aFiles = self::getListOfFiles(self::$sDirectory . self::$sDatabase . "/" . $sSchema . "/" . $sObjectIndex);
+                $aFiles = self::getListOfFiles(self::$sDirectory . self::$sSchemasPath . $sSchema . "/" . $sObjectIndex);
 
                 sort($aFiles);
 
@@ -445,7 +444,7 @@ class DBRepository
 
     private static function getAbsoluteFileName($sRelativeFileName)
     {
-        return self::$sDirectory . self::$sDatabase . "/" . $sRelativeFileName;
+        return self::$sDirectory . self::$sSchemasPath . $sRelativeFileName;
     }
 
     /**
