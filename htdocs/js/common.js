@@ -56,6 +56,7 @@ Git = {
                     data.commit_hash = hash;
                     $("#diff").html(Mustache.render(Git.diff_template, data));
                     Git.last_hash = hash;
+                    Messager.alert(1, 'Checked out to ' + hash);
                 } else {
                     Messager.alert(0, data.message);
                 }
@@ -90,6 +91,10 @@ Git = {
         $(".s-" + schema).filter(".o-" + object_index).prop('checked', Git.schemas_objects_states[schema][object_index]);
     },
 
+    toggleSchemaObjectTable: function(schema, object_index) {
+        $("#row_" + schema + "_" + object_index).slideToggle();
+    },
+
     apply: function(imitate) {
         imitate = imitate || false;
 
@@ -108,7 +113,9 @@ Git = {
             },
             function (data) {
                 Messager.alert(data.status, data.status == 1 ? 'Applied' : data.message);
-                Git.checkout(Git.last_hash);
+                if (data.status == 1) {
+                    Git.checkout(Git.last_hash);
+                }
             }
         );
     },

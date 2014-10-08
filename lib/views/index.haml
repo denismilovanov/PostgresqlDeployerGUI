@@ -42,7 +42,7 @@
     %script{ :id => "diff-template", :type => "text/template" }
         {{#schemas}}
         .panel.panel-default
-            .panel-heading
+            .panel-heading{ :style => "cursor: pointer;", :onclick => "Git.toggleSchemaObjectTable('{{schema_name}}', '{{object_index}}');" }
                 %span.label.label-primary<>
                     {{schema_name}}
                 &nbsp;
@@ -55,7 +55,9 @@
                     or
                     %span.semi-link{ :onclick => "Git.toggleSchemaObject('{{schema_name}}', '{{object_index}}');" }
                         in schema and object
-            %table.table.table-diff
+                %div{ :style => "float: right; margin-right: 50px; color: silver;" }
+                    Click header to hide table
+            %table.table.table-diff{ :id => "row_{{schema_name}}_{{object_index}}"}
                 {{#objects}}
                 %tr
                     %td.item.item-name
