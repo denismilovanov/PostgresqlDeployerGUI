@@ -271,6 +271,7 @@ class DBRepository
                             'dependencies_exist' => $aDependencies ? true : null,
                             'signature_changed' => $bSignatureChanged,
                             'return_type_changed' => $bReturnTypeChanged,
+                            'manual_deployment_required' => $oDatabaseObject instanceof Table ? true : null,
                             'new_object' => $bIsNew,
                         );
                     }

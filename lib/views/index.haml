@@ -77,6 +77,10 @@
                         %span.label.label-success
                             New object
                         {{/new_object}}
+                        {{#manual_deployment_required}}
+                        %span.label.label-warning
+                            Manual deployment required
+                        {{/manual_deployment_required}}
                     %td.item.item-view-diff
                         %a{ :href => "/{{database_name}}/{{schema_name}}/{{object_index}}/{{object_name}}/view_diff/", :target => "_blank" }
                             %span.solid-link
