@@ -2,6 +2,12 @@
 
 - block content
 
+    / branches panel
+    .panel.panel-default{ :style => "padding: 10px; margin-top: -10px; margin-bottom:10px;" }
+        - for aBranch in aBranches
+            %span.label.label-info.branch{:id => "branch_#{aBranch['name']}"}<>
+                = aBranch['name']
+
     / commits panel
     .panel.panel-default
         .panel-body{ :style => "height: 300px; overflow: scroll; scroll: vertical;" }
