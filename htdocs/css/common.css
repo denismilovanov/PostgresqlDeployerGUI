@@ -91,3 +91,7 @@ del {
 .label {
     font-size: 100%;
 }
+
+.branch {
+    cursor: pointer;
+}

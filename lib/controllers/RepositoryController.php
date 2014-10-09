@@ -69,6 +69,8 @@ class RepositoryController {
         $app['twig']->addGlobal('aCurrentUser', $aCurrentUser);
         $app['twig']->addGlobal('aCurrentDatabase', $aCurrentDatabase);
         $app['twig']->addGlobal('aDatabases', DBRepository::getDatabases());
+        $app['twig']->addGlobal('aBranches', DBRepository::getBranches());
+        $app['twig']->addGlobal('sCurrentBranch', DBRepository::getCurrentBranch());
 
         // this user will be deploying schema
         DatabaseObject::$iCurrentUserId = $aCurrentUser['id'];
@@ -119,7 +121,7 @@ class RepositoryController {
             'sError' => $app['request']->get('error_type'),
             'aCurrentDatabase' => array('index' => ''),
             'aDatabases' => DBRepository::getDatabases(),
-            'sErrorMessage' => isset($_GET['e']) ? htmlspecialchars($_GET['e']) : '',
+            'sErrorMessage' => isset($_GET['e']) ? $_GET['e'] : '',
         ));
     }
 

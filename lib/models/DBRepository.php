@@ -13,6 +13,7 @@ class DBRepository
     public static $sLastStatement = '';
 
     public static $aDatabases = array();
+    public static $aBranches = array();
 
     /**
      * Reads settings from JSON configuration file.
@@ -62,6 +63,43 @@ class DBRepository
     }
 
     /**
+     * Returns existing branches.
+     *
+     * @param none
+     *
+     * @return array branches
+     */
+
+    public static function getBranches()
+    {
+        return self::$aBranches;
+    }
+
+    /**
+     * Returns current branch.
+     *
+     * @param none
+     *
+     * @return string current branch
+     */
+
+    public static function getCurrentBranch()
+    {
+        $aBranches = trim(self::$oGit->run('branch'));
+        $aBranches = explode("\n", $aBranches);
+        foreach ($aBranches as $sBranch) {
+            $sBranch = trim($sBranch);
+            if ($sBranch[0] == '*') {
+                $sBranch = str_replace("* ", "", $sBranch);
+                $sBranch = str_replace("(detached from ", "", $sBranch);
+                $sBranch = str_replace(")", "", $sBranch);
+                $sBranch = trim($sBranch);
+                return $sBranch;
+            }
+        }
+    }
+
+    /**
      * Takes index of single database. Returns allowed databases.
      *
      * @param string database index
@@ -101,6 +139,14 @@ class DBRepository
         // make git
         self::$oGit = new Repository($aDatabases[$sDatabaseIndex]['git_root']);
 
+        // branches
+        self::$aBranches = array();
+        foreach (self::$oGit->getReferences()->getLocalBranches() as $oBranch) {
+            self::$aBranches []= array(
+                'name' => trim($oBranch->getName()),
+            );
+        }
+
         // save params
         self::$sDatabase = $sDatabaseIndex;
         self::$sDirectory = $aDatabases[$sDatabaseIndex]['git_root'];
@@ -119,7 +165,7 @@ class DBRepository
 
     public static function getCommits()
     {
-        $aCommitsRaw = self::$oGit->getLog('master');
+        $aCommitsRaw = self::$oGit->getLog(null);
         $aCommits = array(
             'commits' => array(),
             'current_commit_hash' => '',
@@ -478,7 +524,7 @@ class DBRepository
         }
 
         // to fill column in migration_log
-        DatabaseObject::$sCommitHash = self::$oGit->getHead()->getHash();
+        DatabaseObject::$sCommitHash = self::$oGit->getHeadCommit()->getHash();
 
         // to remember we need imitation
         DatabaseObject::$bImitate = $bImitate;

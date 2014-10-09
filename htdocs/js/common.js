@@ -1,9 +1,11 @@
 Messager = {
 
     alert: function (status, message) {
+        message = message || '';
         $("#messager").removeClass("alert-success").removeClass("alert-danger");
         if (status == 0) {
             $("#messager").addClass("alert-danger");
+            message = message + '<br /><br /><a href="#" onclick="$(\'#messager\').slideUp(500); return false;">Close</a>';
         } else {
             $("#messager").addClass("alert-success");
         }
@@ -14,9 +16,6 @@ Messager = {
                 $("#messager").slideUp(500);
             }, 3000);
         }
-        $("#messager").click(function() {
-            $("#messager").slideUp(500);
-        })
     }
 
 }
@@ -43,7 +42,7 @@ Git = {
         });
     },
 
-    checkout: function (hash) {
+    checkout: function (hash, show_alert) {
         Git.request(
             'GET',
             '/' + Git.database_name + '/' + hash + '/checkout/',
@@ -56,7 +55,11 @@ Git = {
                     data.commit_hash = hash;
                     $("#diff").html(Mustache.render(Git.diff_template, data));
                     Git.last_hash = hash;
-                    Messager.alert(1, 'Checked out to ' + hash);
+                    Git.getCommits(function() {
+                        if (show_alert) {
+                            Messager.alert(1, 'Checked out to ' + hash);
+                        }
+                    });
                 } else {
                     Messager.alert(0, data.message);
                 }
@@ -114,17 +117,22 @@ Git = {
             function (data) {
                 Messager.alert(data.status, data.status == 1 ? 'Applied' : data.message);
                 if (data.status == 1) {
-                    Git.checkout(Git.last_hash);
+                    Git.checkout(Git.last_hash, false);
                 }
             }
         );
+    },
+
+    switchToBranch: function (branch) {
+        Git.checkout(branch, true);
     },
 
     imitate: function() {
         Git.apply(true);
     },
 
-    getCommits: function() {
+    getCommits: function(f) {
+        f = f || function() {};
         Git.request(
             'GET',
             '/' + Git.database_name + '/get_commits/',
@@ -133,7 +141,7 @@ Git = {
                 if (data.status == 1) {
                     Git.clearCommits();
                     $("#commits").html(Mustache.render(Git.commits_template, data));
-                    Git.checkout(data['current_commit_hash']);
+                    f();
                 } else {
                     Messager.alert(0, data['message']);
                 }

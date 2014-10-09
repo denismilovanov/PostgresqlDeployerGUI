@@ -19,10 +19,6 @@
                     Imitate
 
 
-    / short messages
-    #messager.alert{ :role => "alert", :style => "display: none;" }
-        1
-
     / div to show diff between git and database
     #diff
 
@@ -30,7 +26,7 @@
     %script{ :id => "commits-template", :type => "text/template" }
         {{#commits}}
         %tr
-            %td{ :style => "font-family: Courier", :onclick => "Git.checkout('{{commit_hash}}')" }
+            %td{ :style => "font-family: Courier", :onclick => "Git.checkout('{{commit_hash}}', true)" }
                 %span.commit{ :class => "commit-{{commit_active}}", :id => "commit-{{commit_hash}}" }
                     {{commit_hash}}
             %td{ :style => "font-family: " }
@@ -125,7 +121,7 @@
             Git.commits_template = $("#commits-template").html();
 
             Git.database_name = $("#database-name").prop("value");
-            Git.getCommits();
+            Git.checkout('#{sCurrentBranch}', false);
 
             $("#apply").click(function() {
                 Git.apply();

@@ -37,6 +37,8 @@
                                 %li
                                     %a{:href => "/#{aDatabase['index']}/"}<>
                                         = aDatabase['name']
+
+
                 /%form.navbar-form.navbar-left{:role => "search"}
                 /    .form-group
                 /        %input.form-control{:placeholder => "Search", :type => "text"}/
@@ -58,8 +60,27 @@
                     /%li
                     /    %a{:href => "/settings/"} Global settings
 
+        .panel.panel-default{ :style => "padding: 10px; margin-top: -10px; margin-bottom:10px;" }
+            - for aBranch in aBranches
+                %span.label.label-info.branch{:id => "branch_#{aBranch['name']}"}<>
+                    = aBranch['name']
+
+        / short messages
+        #messager.alert{ :role => "alert", :style => "display: none; position: fixed; top: 50px; width: 80%; right: 0; left: 0; margin: 0 auto;" }
+            1
 
 
+
+        :javascript
+
+            $(window).ready(function() {
+
+                $(".branch").click(function(e, o) {
+                    var branch = $(this).attr('id').replace('branch_', '');
+                    Git.switchToBranch(branch);
+                });
+
+            });
 
 
         - block content
