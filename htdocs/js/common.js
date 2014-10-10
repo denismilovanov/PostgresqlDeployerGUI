@@ -2,20 +2,14 @@ Messager = {
 
     alert: function (status, message) {
         message = message || '';
-        $("#messager").removeClass("alert-success").removeClass("alert-danger");
-        if (status == 0) {
-            $("#messager").addClass("alert-danger");
-            message = message + '<br /><br /><a href="#" onclick="$(\'#messager\').slideUp(500); return false;">Close</a>';
-        } else {
-            $("#messager").addClass("alert-success");
-        }
-        $("#messager").html(message.replace(/([^>])\n/g, '$1<br/>'));
-        $("#messager").slideDown(500);
         if (status == 1) {
-            setTimeout(function() {
-                $("#messager").slideUp(500);
-            }, 3000);
+            message = '<span class="message message-success">' + message + '</span><br />';
+        } else {
+            message = '<span class="message message-alert">' + message + '</span><br />';
         }
+        message = message.replace(/([^>])\n/g, '$1<br/>');
+        $("#messages-panel-anchor").before(message);
+        $('#messages-panel').scrollTop($('#messages-panel')[0].scrollHeight);
     }
 
 }
@@ -107,6 +101,11 @@ Git = {
             objects.push(e.name);
         });
 
+        if (objects.length == 0) {
+            Messager.alert(1, 'Nothing to ' + (! imitate ? 'apply' : 'imitate'));
+            return;
+        }
+
         Git.request(
             'POST',
             '/' + Git.database_name + '/apply/',
@@ -115,7 +114,7 @@ Git = {
                 imitate: imitate ? 1 : 0
             },
             function (data) {
-                Messager.alert(data.status, data.status == 1 ? 'Applied' : data.message);
+                Messager.alert(data.status, data.status == 1 ? (! imitate ? 'Applied' : 'Imitated') : data.message);
                 if (data.status == 1) {
                     Git.checkout(Git.last_hash, false);
                 }
@@ -128,7 +127,9 @@ Git = {
     },
 
     imitate: function() {
-        Git.apply(true);
+        if (confirm('It will fill postgresql_deployer.migrations table without actual deploying objects. Are you sure?')) {
+            Git.apply(true);
+        }
     },
 
     getCommits: function(f) {

@@ -100,3 +100,15 @@ tt {
 .branch {
     cursor: pointer;
 }
+
+.message {
+    font-family: Courier;
+}
+
+.message-success {
+    color: green;
+}
+
+.message-alert {
+    color: red;
+}

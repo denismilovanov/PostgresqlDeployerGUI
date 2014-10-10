@@ -10,20 +10,27 @@
 
     / commits panel
     .panel.panel-default
-        .panel-body{ :style => "height: 300px; overflow: scroll; scroll: vertical;" }
+        .panel-body{ :style => "height: 180px; overflow: scroll; scroll: vertical;" }
             %table.commits#commits
 
-    / control panel
-    .panel.panel-default
-        .panel-body
-            Choose commit, look at the diff, choose objects to be applied and click
-            %button.btn.btn-default#apply{ :type => "button" }
-                Apply
-            %div{ :style => "float: right;" }
-                To fill migration table without actual deploying click
-                %button.btn.btn-default#imitate{ :type => "button" }
-                    Imitate
+    %table{ :style => "width: 100%" }
+        %tr
+            %td{ :style => "width: 100%" }
+                / messages panel
+                .panel.panel-default{ :style => "margin-right: 10px;" }
+                    .panel-body#messages-panel{ :style => "height: 180px; overflow-y: scroll;" }
+                        %span#messages-panel-anchor
 
+            %td{ :style => "width: 180px;" }
+                .panel.panel-default
+                    .panel-body{ :style => "height: 180px; text-align: center;" }
+                        / control panel
+                        %button.btn.btn-success.btn-lg#apply{ :type => "button", :style => "font-weight: bold;" }
+                            Apply
+                        %br
+                        %br
+                        %button.btn.btn-warning.btn-sm#imitate{ :type => "button", :style => "" }
+                            Imitate
 
     / div to show diff between git and database
     #diff
