@@ -165,7 +165,7 @@ class RepositoryController {
         $sFilename = $app['request']->get('file_name');
 
         return $app['twig']->render('/view_diff.haml', array(
-            'aDiff' => DBRepository::getDiff($sSchemaName, $sObjectIndex, $sFilename),
+            'aDiff' => DBRepository::getDiffAsHTML($sSchemaName, $sObjectIndex, $sFilename),
         ));
     }
 

@@ -44,6 +44,11 @@ del {
     color: red;
 }
 
+tt {
+    color: blue;
+    font-weight: bold;
+}
+
 .item {
 }
 

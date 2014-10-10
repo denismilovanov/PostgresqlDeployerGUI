@@ -4,7 +4,7 @@
         "Read more about it at http://getcomposer.org/doc/01-basic-usage.md#composer-lock-the-lock-file",
         "This file is @generated automatically"
     ],
-    "hash": "4339ed2295cc4ac988a0134aef335c6f",
+    "hash": "d075d2c7d9a8b1e8f59da89bc865d226",
     "packages": [
         {
             "name": "denismilovanov/libpostgres",
@@ -87,22 +87,6 @@
             "description": "Library for accessing git",
             "homepage": "http://gitonomy.com",
             "time": "2014-07-13 19:02:31"
-        },
-        {
-            "name": "gorhill/php-finediff",
-            "version": "1.0",
-            "dist": {
-                "type": "zip",
-                "url": "https://github.com/gorhill/PHP-FineDiff/archive/master.zip",
-                "reference": null,
-                "shasum": null
-            },
-            "type": "library",
-            "autoload": {
-                "classmap": [
-                    "/"
-                ]
-            }
         },
         {
             "name": "mthaml/mthaml",
@@ -719,16 +703,16 @@
         },
         {
             "name": "twig/twig",
-            "version": "v1.16.0",
+            "version": "v1.16.1",
             "source": {
                 "type": "git",
                 "url": "https://github.com/fabpot/Twig.git",
-                "reference": "8ce37115802e257a984a82d38254884085060024"
+                "reference": "7c4c01dcf578523cfcddf383641a4f12790270ec"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/fabpot/Twig/zipball/8ce37115802e257a984a82d38254884085060024",
-                "reference": "8ce37115802e257a984a82d38254884085060024",
+                "url": "https://api.github.com/repos/fabpot/Twig/zipball/7c4c01dcf578523cfcddf383641a4f12790270ec",
+                "reference": "7c4c01dcf578523cfcddf383641a4f12790270ec",
                 "shasum": ""
             },
             "require": {
@@ -772,7 +756,7 @@
             "keywords": [
                 "templating"
             ],
-            "time": "2014-07-05 12:19:05"
+            "time": "2014-10-10 14:09:53"
         }
     ],
     "packages-dev": [

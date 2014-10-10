@@ -3,6 +3,10 @@
 use Gitonomy\Git\Repository;
 use LibPostgres\LibPostgresDriver;
 
+// for external `diff`
+use Symfony\Component\Process\Process;
+use Symfony\Component\Process\ProcessBuilder;
+
 class DBRepository
 {
     private static $oGit = null;
@@ -386,14 +390,32 @@ class DBRepository
     }
 
     /**
-     * Returns list of files in directory
+     * Makes temporary file with given content
      *
-     * @param string directory
+     * @param string content
      *
-     * @return array files
+     * @return string filename
      */
 
-    public static function getDiff($sSchemaName, $sObjectIndex, $sObjectName)
+    private static function makeTemporaryFile($sContent)
+    {
+        $sFileName = tempnam(sys_get_temp_dir(), 'pgdeployer');
+        file_put_contents($sFileName, $sContent);
+        return $sFileName;
+    }
+
+    /**
+     * Returns diff between object in git and object saved in database
+     *
+     * @param string schema name
+     * @param string object index
+     * @param string object name
+     * @param integer context
+     *
+     * @return string diff as HTML
+     */
+
+    public static function getDiffAsHTML($sSchemaName, $sObjectIndex, $sObjectName, $iContext = 5)
     {
         // read file from git
         $sInRepository = self::getFileContent(
@@ -412,18 +434,36 @@ class DBRepository
         // read from database
         $sInDatabase = $oObject->getObjectContentInDatabase();
 
-        // creates diff opcodes
-        $aOpcodes = FineDiff::getDiffOpcodes($sInDatabase, $sInRepository, FineDiff::$paragraphGranularity);
+        // create 2 temporary files
+        $sFileInRepository = self::makeTemporaryFile($sInRepository);
+        $sFileInDatabase = self::makeTemporaryFile($sInDatabase);
 
-        // html view of diff
-        $sInDatabase = FineDiff::renderDiffToHTMLFromOpcodes($sInDatabase, $aOpcodes);
+        // make diff process
+        $oBuilder = new ProcessBuilder(array(
+            'diff',
+            $sFileInDatabase,
+            $sFileInRepository,
+            '-U ' . $iContext
+        ));
+        $oDiff = $oBuilder->getProcess();
+        $oDiff->run();
 
-        // fix FineDiff::renderDiffToHTMLFromOpcodes / renderDiffToHTMLFromOpcode
-        // TODO: there is problem if string contains \n as element of programming code, e.g. s := E'\n'
-        $sInDatabase = preg_replace('~\\\\n~uixs', "\n", $sInDatabase);
+        $sOutput = $oDiff->getOutput();
+
+        // process_output
+        $sOutput = preg_replace("~^---.*$~uixm", "", $sOutput);
+        $sOutput = preg_replace("~^\+\+\+.*$~uixm", "", $sOutput);
+
+        $sOutput = preg_replace("~^(-.*)$~uixm", "<del>$1</del>", $sOutput);
+        $sOutput = preg_replace("~^(\+.*)$~uixm", "<ins>$1</ins>", $sOutput);
+        $sOutput = preg_replace("~^(@@.+@@)$~uixm", "<tt>$1</tt>", $sOutput);
+        $sOutput = trim($sOutput);
+
+        unlink($sFileInRepository);
+        unlink($sFileInDatabase);
 
         return array(
-            'in_database' => $sInDatabase,
+            'in_database' => $sOutput,
         );
     }
 

@@ -12,11 +12,18 @@
     %br
     %br
 
-    %table.table
-        %tr
-            %td{ :width => "100%"}
-                %div.pre<>
-                    = aDiff['in_database'] | raw
+    -if aDiff['in_database']
+
+        %table.table
+            %tr
+                %td{ :width => "100%"}
+                    %div.pre<>
+                        = aDiff['in_database'] | raw
+
+    -else
+
+        %h3
+            Objects in git and database are equal.
 
 
 

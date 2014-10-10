@@ -4,25 +4,7 @@
         "twig/twig": ">=1.8,<2.0-dev",
         "mthaml/silex-mthaml": "*",
         "denismilovanov/libpostgres": "1.*",
-        "gitonomy/gitlib": "*",
-        "gorhill/php-finediff": "*"
+        "gitonomy/gitlib": "*"
     },
-    "repositories": [
-        {
-            "type": "package",
-            "package": {
-                "name": "gorhill/php-finediff",
-                "version": "1.0",
-                "dist": {
-                    "url": "https://github.com/gorhill/PHP-FineDiff/archive/master.zip",
-                    "type": "zip"
-                },
-                "autoload": {
-                    "classmap": ["/"]
-                },
-                "target-dir": "/"
-            }
-        }
-    ],
     "minimum-stability": "stable"
 }
