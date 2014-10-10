@@ -59,7 +59,7 @@ class Type extends DatabaseObject
     public function applyObject()
     {
         if (self::$bImitate) {
-            return;
+            return array();
         }
 
         $aDroppedFunctions = array();
