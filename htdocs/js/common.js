@@ -36,7 +36,8 @@ Git = {
         });
     },
 
-    checkout: function (hash, show_alert) {
+    checkout: function (hash, show_alert, f) {
+        f = f || function() {};
         Git.request(
             'GET',
             '/' + Git.database_name + '/' + hash + '/checkout/',
@@ -53,6 +54,7 @@ Git = {
                         if (show_alert) {
                             Messager.alert(1, 'Checked out to ' + hash);
                         }
+                        f();
                     });
                 } else {
                     Messager.alert(0, data.message);
@@ -120,6 +122,12 @@ Git = {
                 }
             }
         );
+    },
+
+    reloadAndApply: function() {
+        Git.checkout(Git.last_hash, false, function() {
+            Git.apply();
+        })
     },
 
     switchToBranch: function (branch) {

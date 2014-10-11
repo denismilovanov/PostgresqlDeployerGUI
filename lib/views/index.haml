@@ -29,6 +29,10 @@
                             Apply
                         %br
                         %br
+                        %button.btn.btn-success#reload-and-apply{ :type => "button", :style => "font-weight: bold;" }
+                            Reload & apply
+                        %br
+                        %br
                         %button.btn.btn-warning.btn-sm#imitate{ :type => "button", :style => "" }
                             Imitate
 
@@ -138,6 +142,10 @@
 
             $("#apply").click(function() {
                 Git.apply();
+            });
+
+            $("#reload-and-apply").click(function() {
+                Git.reloadAndApply();
             });
 
             $("#imitate").click(function() {
