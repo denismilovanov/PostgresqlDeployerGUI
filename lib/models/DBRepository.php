@@ -1,6 +1,7 @@
 <?php
 
 use Gitonomy\Git\Repository;
+use Gitonomy\Git\Reference\Branch;
 use LibPostgres\LibPostgresDriver;
 
 // for external `diff`
@@ -148,6 +149,7 @@ class DBRepository
         foreach (self::$oGit->getReferences()->getLocalBranches() as $oBranch) {
             self::$aBranches []= array(
                 'name' => trim($oBranch->getName()),
+                'hash' => $oBranch->getCommitHash(),
             );
         }
 
@@ -188,10 +190,24 @@ class DBRepository
                 $aCommits['current_commit_hash'] = $aCommit->getHash();
             }
 
+            $aBranchesRaw = $aCommit->resolveReferences();
+
+            $aBranches = array();
+            foreach ($aBranchesRaw as $aBranch) {
+                if ($aBranch instanceof Branch) {
+                    if ($aBranch->isLocal()) {
+                        $aBranches [] = array(
+                            'branch_name' => $aBranch->getName(),
+                        );
+                    }
+                }
+            }
+
             $aCommits['commits'] []= array(
                 'commit_hash' => $aCommit->getHash(),
                 'commit_message' => $aCommit->getMessage(),
                 'commit_active' => $bActive ? "active" : "passive",
+                'resolved_branches' => $aBranches,
             );
         }
         return $aCommits;

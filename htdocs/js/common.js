@@ -32,7 +32,7 @@ Git = {
         }).done(function(data) {
             success(data);
         }).fail(function() {
-            Messager.alert(0, 'Unable to make request.');
+            Messager.alert(0, 'Unable to make request');
         });
     },
 

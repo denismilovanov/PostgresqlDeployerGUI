@@ -4,13 +4,20 @@
 
     / branches panel
     .panel.panel-default{ :style => "padding: 10px; margin-top: -10px; margin-bottom:10px;" }
+        %button.btn.btn-success.btn-sm#reload-current-branch{ :type => "button", :style => "" }
+            Reload diff
+        %span{ :style => "margin-left: 10px; color: silver;"}
+            between current branch and database
+
+        %span{ :style => "margin-left: 50px; color: silver;"}
+            Click branch to checkout:
         - for aBranch in aBranches
-            %span.label.label-info.branch{:id => "branch_#{aBranch['name']}"}<>
+            %span.resolved-branch.branch{:id => "branch_#{aBranch['name']}"}<>
                 = aBranch['name']
 
     / commits panel
     .panel.panel-default
-        .panel-body{ :style => "height: 180px; overflow: scroll; scroll: vertical;" }
+        .panel-body{ :style => "height: 180px; overflow-y: scroll;" }
             %table.commits#commits
 
     %table{ :style => "width: 100%" }
@@ -43,11 +50,18 @@
     %script{ :id => "commits-template", :type => "text/template" }
         {{#commits}}
         %tr
-            %td{ :style => "font-family: Courier", :onclick => "Git.checkout('{{commit_hash}}', true)" }
+            %td.pointer{ :style => "font-family: Courier;", :onclick => "Git.checkout('{{commit_hash}}', true)" }
                 %span.commit{ :class => "commit-{{commit_active}}", :id => "commit-{{commit_hash}}" }
                     {{commit_hash}}
             %td{ :style => "font-family: " }
-                {{commit_message}}
+                %span{ :style => "color: silver;" }
+                    &mdash;
+                %span{ :style => "", :onclick => "Git.checkout('{{commit_hash}}', true)" }
+                    {{commit_message}}
+                {{#resolved_branches}}
+                %span.resolved-branch.pointer{ :onclick => "Git.checkout('{{branch_name}}', true);" }<>
+                    {{branch_name}}
+                {{/resolved_branches}}
         {{/commits}}
     / end of template
 
@@ -55,18 +69,18 @@
     %script{ :id => "diff-template", :type => "text/template" }
         {{#schemas}}
         .panel.panel-default
-            .panel-heading{ :style => "cursor: pointer;", :onclick => "Git.toggleSchemaObjectTable('{{schema_name}}', '{{object_index}}');" }
+            .panel-heading.pointer{ :onclick => "Git.toggleSchemaObjectTable('{{schema_name}}', '{{object_index}}');" }
                 %span.label.label-primary<>
                     {{schema_name}}
                 &nbsp;
                 %span.label.label-primary<>
                     {{object_index}}
-                %div{ :style => "float: right;" }
+                %div{ :style => "float: right; z-index: 1;" }
                     Toggle all
-                    %span.semi-link{ :onclick => "Git.toggleSchema('{{schema_name}}');" }
+                    %span.semi-link{ :onclick => "event.stopPropagation();Git.toggleSchema('{{schema_name}}');" }
                         in schema
                     or
-                    %span.semi-link{ :onclick => "Git.toggleSchemaObject('{{schema_name}}', '{{object_index}}');" }
+                    %span.semi-link{ :onclick => "event.stopPropagation();Git.toggleSchemaObject('{{schema_name}}', '{{object_index}}');" }
                         in schema and object
                 %div{ :style => "float: right; margin-right: 50px; color: silver;" }
                     Click header to hide table
@@ -102,7 +116,7 @@
                                 View diff
                     %td.item.item-view-apply
                         %input{ :class => "apply s-{{schema_name}} o-{{object_index}}", :type => "checkbox", :checked => "checked", :name => "{{schema_name}}/{{object_index}}/{{object_name}}", :value => "1" }
-                        %span.semi-link
+                        %span
                             Apply
                 {{#dependencies}}
                 %tr
@@ -122,9 +136,12 @@
         {{^schemas}}
         .panel.panel-default
             .panel-heading
-                Up-to-date
+                %b
+                    Up-to-date
             .panel-body
-                Your database is up-to-date with {{commit_hash}}
+                Your database is up-to-date with
+                %b
+                    {{commit_hash}}
         {{/schemas}}
     / end of template
 
@@ -138,7 +155,7 @@
             Git.commits_template = $("#commits-template").html();
 
             Git.database_name = $("#database-name").prop("value");
-            Git.checkout('#{sCurrentBranch}', false);
+            Git.checkout('#{sCurrentBranch}', true);
 
             $("#apply").click(function() {
                 Git.apply();
@@ -150,6 +167,10 @@
 
             $("#imitate").click(function() {
                 Git.imitate();
+            });
+
+            $("#reload-current-branch").click(function() {
+                Git.checkout(Git.last_hash);
             });
 
         });

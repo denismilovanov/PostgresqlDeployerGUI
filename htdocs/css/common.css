@@ -1,5 +1,14 @@
 body {
     padding: 20px;
+    background-color: rgba(211, 211, 211, 0.26);
+}
+
+.pointer {
+    cursor: pointer;
+}
+
+.navbar-brand {
+    font-size: 22px;
 }
 
 .color-red {
@@ -16,7 +25,6 @@ body {
 }
 
 .commit {
-    cursor: pointer;
 }
 
 .commit-active {
@@ -111,4 +119,18 @@ tt {
 
 .message-alert {
     color: red;
+}
+
+.resolved-branch {
+    display: inline;
+    padding: .2em .6em .3em;
+    font-size: 100%;
+    line-height: 1;
+    color: #fff;
+    text-align: center;
+    white-space: nowrap;
+    vertical-align: baseline;
+    border-radius: .25em;
+    background-color: rgba(102, 0, 255, 0.46);
+    margin-left: 10px;
 }
