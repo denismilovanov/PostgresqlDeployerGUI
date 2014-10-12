@@ -3,6 +3,27 @@ body {
     background-color: rgba(211, 211, 211, 0.26);
 }
 
+::-webkit-scrollbar {
+    width: 3em;
+    height: 2em;
+}
+
+::-webkit-scrollbar-button {
+    background: #ccc;
+}
+
+::-webkit-scrollbar-track-piece {
+    background: #eee;
+}
+
+::-webkit-scrollbar-thumb {
+    background: #ddd;
+}​
+
+.dummy {
+
+}
+
 .pointer {
     cursor: pointer;
 }
@@ -20,8 +41,9 @@ body {
 }
 
 .commits td {
-    padding: 2px;
+    padding: 3px;
     vertical-align: middle;
+    border-bottom: 1px dashed rgba(192, 192, 192, 0.24);
 }
 
 .commit {
@@ -79,7 +101,6 @@ tt {
 .item-view-dependencies {
     width: 20%;
     border-right: 1px silver dotted;
-    cursor: pointer;
 }
 
 .item-apply {
@@ -132,5 +153,5 @@ tt {
     vertical-align: baseline;
     border-radius: .25em;
     background-color: rgba(102, 0, 255, 0.46);
-    margin-left: 10px;
+    margin-right: 10px;
 }

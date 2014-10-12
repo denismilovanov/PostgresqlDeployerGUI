@@ -4,16 +4,17 @@
 
     / branches panel
     .panel.panel-default{ :style => "padding: 10px; margin-top: -10px; margin-bottom:10px;" }
-        %button.btn.btn-success.btn-sm#reload-current-branch{ :type => "button", :style => "" }
-            Reload diff
-        %span{ :style => "margin-left: 10px; color: silver;"}
-            between current branch and database
-
-        %span{ :style => "margin-left: 50px; color: silver;"}
-            Click branch to checkout:
-        - for aBranch in aBranches
-            %span.resolved-branch.branch{:id => "branch_#{aBranch['name']}"}<>
-                = aBranch['name']
+        %table
+            %tr
+                %td{ :style => "width: 180px;" }
+                    %button.btn.btn-success.btn-sm#reload-current-branch{ :type => "button", :style => "" }
+                        Reload diff
+                %td
+                    %span{ :style => "color: silver;"}
+                        Click branch to checkout:
+                    - for aBranch in aBranches
+                        %span.resolved-branch.branch{:id => "branch_#{aBranch['name']}"}<>
+                            = aBranch['name']
 
     / commits panel
     .panel.panel-default
@@ -50,18 +51,21 @@
     %script{ :id => "commits-template", :type => "text/template" }
         {{#commits}}
         %tr
-            %td.pointer{ :style => "font-family: Courier;", :onclick => "Git.checkout('{{commit_hash}}', true)" }
+            %td.pointer{ :style => "font-family: Courier; width: 20%", :onclick => "Git.checkout('{{commit_hash}}', true)" }
                 %span.commit{ :class => "commit-{{commit_active}}", :id => "commit-{{commit_hash}}" }
                     {{commit_hash}}
-            %td{ :style => "font-family: " }
+            %td{ :style => "width: 10px;" }
                 %span{ :style => "color: silver;" }
                     &mdash;
-                %span{ :style => "", :onclick => "Git.checkout('{{commit_hash}}', true)" }
+            %td
+                %span{ :style => "width: 80%", :onclick => "Git.checkout('{{commit_hash}}', true)" }
                     {{commit_message}}
                 {{#resolved_branches}}
                 %span.resolved-branch.pointer{ :onclick => "Git.checkout('{{branch_name}}', true);" }<>
                     {{branch_name}}
                 {{/resolved_branches}}
+            %td{ :style => "width: 20%" }
+                {{commit_author}}
         {{/commits}}
     / end of template
 

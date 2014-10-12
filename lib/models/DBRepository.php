@@ -207,6 +207,7 @@ class DBRepository
                 'commit_hash' => $aCommit->getHash(),
                 'commit_message' => $aCommit->getMessage(),
                 'commit_active' => $bActive ? "active" : "passive",
+                'commit_author' => $aCommit->getAuthorName(),
                 'resolved_branches' => $aBranches,
             );
         }
