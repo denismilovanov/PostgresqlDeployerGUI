@@ -139,6 +139,7 @@ class DBRepository
 
         // share connections
         User::$oDB = self::$oDB;
+        Database::$oDB = self::$oDB;
         DatabaseObject::$oDB = self::$oDB;
 
         // make git
@@ -289,6 +290,7 @@ class DBRepository
             // for each object type - index
             foreach (self::getObjectsIndexes() as $sObjectIndex) {
 
+                // container for objects in schema
                 $aSchema = array();
 
                 $aSchema['database_name'] = self::$sDatabase;
@@ -297,7 +299,16 @@ class DBRepository
 
                 // all objects of given type in given schema
                 $aFiles = self::getListOfFiles(self::$sDirectory . self::$sSchemasPath . $sSchema . "/" . $sObjectIndex);
+                // files have hash != ''
 
+                // ALL objects in database
+                $aObjects = Database::getObjectsAsVirtualFiles($sSchema, $sObjectIndex);
+                // hash == ''
+
+                // objects not under git will still have hash = ''
+                $aFiles = array_merge($aObjects, $aFiles);
+
+                //
                 sort($aFiles);
 
                 // let's walk through files
@@ -306,13 +317,17 @@ class DBRepository
                     $sObjectNameName = self::getBaseNameWithoutExtension($aFile['file']);
                     $aDependencies = null;
 
+                    // is object under git?
+                    $bInGit = $aFile['hash'] != '';
+                    $bNotInGit = ! $bInGit;
+
                     // make object
                     $oDatabaseObject = DatabaseObject::make(
                         self::$sDatabase,
                         $sSchema,
                         $sObjectIndex,
                         $sObjectNameName,
-                        self::getFileContent($aFile['file'])
+                        $bInGit ? self::getFileContent($aFile['file']) : ''
                     );
 
                     // has object been changed (git contains one version, but db contains another)
@@ -321,9 +336,11 @@ class DBRepository
                         // we should show dependencies
                         $aDependencies = $oDatabaseObject->getObjectDependencies();
 
+                        // is object new? (in git and not in database)
                         $bIsNew = ! $oDatabaseObject->objectExists();
 
-                        if (! $bIsNew) {
+                        //
+                        if (! $bIsNew and $bInGit) {
                             $bSignatureChanged = $oDatabaseObject->signatureChanged();
                             $bReturnTypeChanged = ($oDatabaseObject instanceof StoredFunction) && $oDatabaseObject->returnTypeChanged();
                         } else {
@@ -338,8 +355,9 @@ class DBRepository
                             'dependencies_exist' => $aDependencies ? true : null,
                             'signature_changed' => $bSignatureChanged,
                             'return_type_changed' => $bReturnTypeChanged,
-                            'manual_deployment_required' => $oDatabaseObject instanceof Table ? true : null,
+                            'manual_deployment_required' => (($oDatabaseObject instanceof Table) and $bInGit) ? true : null,
                             'new_object' => $bIsNew,
+                            'not_in_git' => $bNotInGit,
                         );
                     }
 
@@ -395,7 +413,7 @@ class DBRepository
                         'hash' => '',
                     );
                 } else {
-                    $aResult []= array(
+                    $aResult [self::getBaseNameWithoutExtension($sFile)]= array(
                         'file' => $sFile,
                         'hash' => self::getFileHash($sFile),
                     );

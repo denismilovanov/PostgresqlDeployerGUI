@@ -11,6 +11,8 @@ require_once '../lib/models/Type.php';
 require_once '../lib/models/User.php';
 
 require_once '../lib/models/DBRepository.php';
+require_once '../lib/models/Database.php';
+
 require_once '../lib/controllers/RepositoryController.php';
 
 use Symfony\Component\Debug\ErrorHandler;

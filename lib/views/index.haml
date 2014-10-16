@@ -117,14 +117,23 @@
                         %span.label.label-warning
                             Manual deployment required
                         {{/manual_deployment_required}}
+                        {{#not_in_git}}
+                        %span.label.label-danger
+                            %b
+                                NOT IN GIT
+                        {{/not_in_git}}
                     %td.item.item-view-diff
+                        {{^not_in_git}}
                         %a{ :href => "/{{database_name}}/{{schema_name}}/{{object_index}}/{{object_name}}/view_diff/", :target => "_blank" }
                             %span.solid-link
                                 View diff
+                        {{/not_in_git}}
                     %td.item.item-view-apply
+                        {{^not_in_git}}
                         %input{ :class => "apply s-{{schema_name}} o-{{object_index}}", :type => "checkbox", :checked => null, :name => "{{schema_name}}/{{object_index}}/{{object_name}}", :value => "1" }
                         %span
                             Apply
+                        {{/not_in_git}}
                 {{#dependencies}}
                 %tr
                     %td.item.item-dependent-name{ :colspan => 2, :style => "padding-left: 50px;" }
