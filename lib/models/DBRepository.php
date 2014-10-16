@@ -346,6 +346,7 @@ class DBRepository
                 }
 
                 if (! empty($aSchema['objects'])) {
+                    $aSchema['objects_count'] = count($aSchema['objects']);
                     $aResult['schemas'] []= $aSchema;
                 }
 

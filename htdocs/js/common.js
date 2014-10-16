@@ -73,7 +73,7 @@ Git = {
 
     toggleSchema: function(schema) {
         if (Git.schemas_states[schema] == undefined) {
-            Git.schemas_states[schema] = true;
+            Git.schemas_states[schema] = false;
         }
         Git.schemas_states[schema] = ! Git.schemas_states[schema];
         $(".s-" + schema).prop('checked', Git.schemas_states[schema]);
@@ -84,7 +84,7 @@ Git = {
             Git.schemas_objects_states[schema] = {};
         }
         if (Git.schemas_objects_states[schema][object_index] == undefined) {
-            Git.schemas_objects_states[schema][object_index] = true;
+            Git.schemas_objects_states[schema][object_index] = false;
         }
         Git.schemas_objects_states[schema][object_index] = ! Git.schemas_objects_states[schema][object_index];
         $(".s-" + schema).filter(".o-" + object_index).prop('checked', Git.schemas_objects_states[schema][object_index]);

@@ -79,13 +79,16 @@
                 &nbsp;
                 %span.label.label-primary<>
                     {{object_index}}
+                &nbsp;
+                %span.badge{ :style => "background-color: silver;" }
+                    {{objects_count}}
                 %div{ :style => "float: right; z-index: 1;" }
                     Toggle all
                     %span.semi-link{ :onclick => "event.stopPropagation();Git.toggleSchema('{{schema_name}}');" }
                         in schema
                     or
                     %span.semi-link{ :onclick => "event.stopPropagation();Git.toggleSchemaObject('{{schema_name}}', '{{object_index}}');" }
-                        in schema and object
+                        in schema and object type
                 %div{ :style => "float: right; margin-right: 50px; color: silver;" }
                     Click header to hide table
             %table.table.table-diff{ :id => "row_{{schema_name}}_{{object_index}}"}
@@ -119,7 +122,7 @@
                             %span.solid-link
                                 View diff
                     %td.item.item-view-apply
-                        %input{ :class => "apply s-{{schema_name}} o-{{object_index}}", :type => "checkbox", :checked => "checked", :name => "{{schema_name}}/{{object_index}}/{{object_name}}", :value => "1" }
+                        %input{ :class => "apply s-{{schema_name}} o-{{object_index}}", :type => "checkbox", :checked => null, :name => "{{schema_name}}/{{object_index}}/{{object_name}}", :value => "1" }
                         %span
                             Apply
                 {{#dependencies}}
