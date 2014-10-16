@@ -1,0 +1,28 @@
+{
+    "databases": {
+        "db1": {
+            "index": "db1",
+            "name": "DB 1",
+            "credentials": {
+                "host": "localhost",
+                "port": "5432",
+                "user_name": "user1",
+                "user_password": "pass1",
+                "db_name": "db1"
+            },
+            "git_root": "/home/user/work/project/db1_git_root/"
+        },
+        "db2": {
+            "index": "db2",
+            "name": "DB 2",
+            "credentials": {
+                "host": "localhost",
+                "port": "5432",
+                "user_name": "user2",
+                "user_password": "pass2",
+                "db_name": "db2"
+            },
+            "git_root": "/home/user/work/project/db2_git_root/"
+        }
+    }
+}
