@@ -1,5 +1,7 @@
 <?php
 
+define("VERSION", "0.0.3");
+
 require_once '../lib/vendor/autoload.php';
 
 require_once '../lib/models/DatabaseObject.php';
@@ -31,6 +33,8 @@ $app->register(new Silex\Provider\TwigServiceProvider(), array(
 ));
 
 $app->register(new SilexMtHaml\MtHamlServiceProvider());
+
+$app['twig']->addGlobal('VERSION', VERSION);
 
 $app->get('/', 'RepositoryController::redirectToDatabase');
 
