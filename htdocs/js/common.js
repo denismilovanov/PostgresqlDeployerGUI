@@ -126,6 +126,9 @@ Git = {
 
     reloadAndApply: function() {
         Git.checkout(Git.last_hash, false, function() {
+            // check all checkboxes (they are not checked by default)
+            $(".apply").prop('checked', true);
+            //
             Git.apply();
         })
     },
