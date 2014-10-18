@@ -5,12 +5,12 @@ use Gitonomy\Git\Reference\Branch;
 use LibPostgres\LibPostgresDriver;
 
 // for external `diff`
-use Symfony\Component\Process\Process;
 use Symfony\Component\Process\ProcessBuilder;
 
 class DBRepository
 {
     private static $oGit = null;
+    private static $aDBCredentials = null;
     private static $oDB = null;
     private static $sDirectory = null;
     private static $sDatabase = null;
@@ -65,6 +65,19 @@ class DBRepository
     public static function getDatabases()
     {
         return self::$aDatabases;
+    }
+
+    /**
+     * Returns DB credentials.
+     *
+     * @param none
+     *
+     * @return array credentials
+     */
+
+    public static function getDBCredentials()
+    {
+        return self::$aDBCredentials;
     }
 
     /**
@@ -133,9 +146,15 @@ class DBRepository
         }
 
         // make connection
-        self::$oDB = new LibPostgresDriver($aDatabases[$sDatabaseIndex]['credentials']);
+        self::$aDBCredentials = $aDatabases[$sDatabaseIndex]['credentials'];
+        self::$oDB = new LibPostgresDriver(self::$aDBCredentials);
         // check connection
-        self::$oDB->selectField("SELECT 1");
+        $sVersion = self::$oDB->selectField("SHOW server_version_num;");
+
+        // build version
+        self::$aDBCredentials['version'] = floor($sVersion /  10000) . "." . floor($sVersion / 100) % 10;
+        // to show in header
+        $aDatabases[$sDatabaseIndex]['version'] = self::$aDBCredentials['version'];
 
         // share connections
         User::$oDB = self::$oDB;
@@ -358,6 +377,7 @@ class DBRepository
                             'manual_deployment_required' => (($oDatabaseObject instanceof Table) and $bInGit) ? true : null,
                             'new_object' => $bIsNew,
                             'not_in_git' => $bNotInGit,
+                            'describe' => $bNotInGit and ($oDatabaseObject instanceof Table),
                         );
                     }
 
@@ -709,6 +729,30 @@ class DBRepository
             throw $oException;
         }
 
+    }
+
+    /**
+     * Describes object
+     *
+     * @param string schema name
+     * @param string object index
+     * @param string object name
+     *
+     * @return Object SQL description
+     */
+
+    public static function describe($sSchemaName, $sObjectIndex, $sObjectName)
+    {
+        // make object
+        $oObject = DatabaseObject::make(
+            self::$sDatabase,
+            $sSchemaName,
+            $sObjectIndex,
+            $sObjectName,
+            ''
+        );
+
+        return $oObject->describe();
     }
 
 }

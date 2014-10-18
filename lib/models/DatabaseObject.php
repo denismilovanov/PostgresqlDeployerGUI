@@ -111,6 +111,8 @@ abstract class DatabaseObject
 
     abstract public function applyObject();
 
+    abstract public function describe();
+
 }
 
 

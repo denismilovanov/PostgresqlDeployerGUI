@@ -1,0 +1,27 @@
+- extends 'header.haml'
+
+- block content
+
+    -if sDescription
+
+        %table.table
+            %tr
+                %td{ :width => "100%"}
+                    %div.pre<>
+                        = sDescription
+
+    -else
+
+        %h3
+            Unable to describe.
+
+
+
+
+
+
+
+
+
+
+

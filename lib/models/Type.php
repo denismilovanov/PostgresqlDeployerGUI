@@ -98,6 +98,11 @@ class Type extends DatabaseObject
                 self::$aMigrations[$this->sSchemaName][$this->sObjectIndex][$this->sObjectName] != $sCurrentHash;
     }
 
+    public function describe()
+    {
+        return '';
+    }
+
 }
 
 

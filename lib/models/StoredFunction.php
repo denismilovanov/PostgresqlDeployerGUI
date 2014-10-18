@@ -109,6 +109,11 @@ class StoredFunction extends DatabaseObject
                 $this->sObjectName == $oAnotherFunction->sObjectName;
     }
 
+    public function describe()
+    {
+        return '';
+    }
+
 }
 
 

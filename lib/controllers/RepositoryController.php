@@ -119,7 +119,7 @@ class RepositoryController {
         return $app['twig']->render('/error.haml', array(
             'aCurrentUser' => array('email' => ''),
             'sError' => $app['request']->get('error_type'),
-            'aCurrentDatabase' => array('index' => ''),
+            'aCurrentDatabase' => array('index' => '', 'version' => ''),
             'aDatabases' => DBRepository::getDatabases(),
             'sErrorMessage' => isset($_GET['e']) ? $_GET['e'] : '',
         ));
@@ -180,6 +180,17 @@ class RepositoryController {
         }
 
         return $app->json($aResult);
+    }
+
+    // action describe (html)
+    public function describe(Request $request, Application $app) {
+        $sSchemaName = $app['request']->get('schema_name');
+        $sObjectIndex = $app['request']->get('object_index');
+        $sFilename = $app['request']->get('file_name');
+
+        return $app['twig']->render('/describe.haml', array(
+            'sDescription' => DBRepository::describe($sSchemaName, $sObjectIndex, $sFilename),
+        ));
     }
 
 }

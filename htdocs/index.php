@@ -48,7 +48,10 @@ $app->match('/{database_name}/logout/', 'RepositoryController::logout')->before(
 $app->get('/{database_name}/get_commits/', 'RepositoryController::getCommits')->before('RepositoryController::useDatabase');
 
 $app->get('/{database_name}/{hash}/checkout/', 'RepositoryController::checkout')->before('RepositoryController::useDatabase');
+
 $app->get('/{database_name}/{schema_name}/{object_index}/{file_name}/view_diff/', 'RepositoryController::viewDiff')->before('RepositoryController::useDatabase');
+$app->get('/{database_name}/{schema_name}/{object_index}/{file_name}/describe/', 'RepositoryController::describe')->before('RepositoryController::useDatabase');
+
 $app->post('{database_name}/apply/', 'RepositoryController::apply')->before('RepositoryController::useDatabase');
 
 $app->run();
