@@ -289,7 +289,7 @@ class DBRepository
     }
 
     /**
-     * Get schemas in git repository - schemas are subdirectories in database directory
+     * Get schemas in git repository (schemas are subdirectories in database directory) + database schemas
      *
      * @param none
      *
@@ -298,13 +298,19 @@ class DBRepository
 
     private static function getSchemas()
     {
+        // schemas from git
         $aSchemasRaw = self::getListOfFiles(self::$sDirectory . self::$sSchemasPath, false);
         $aSchemas = array();
 
         foreach ($aSchemasRaw as $sFile) {
-            $aSchemas []= self::getBaseName($sFile['file']);
+            $sSchemaName = self::getBaseName($sFile['file']);
+            $aSchemas[$sSchemaName] = $sSchemaName;
         }
 
+        // merge with schemas from database
+        $aSchemas = array_merge($aSchemas, Database::getSchemas());
+
+        // some order
         sort($aSchemas);
 
         return $aSchemas;

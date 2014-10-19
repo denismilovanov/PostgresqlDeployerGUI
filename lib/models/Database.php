@@ -67,6 +67,17 @@ class Database
 
     }
 
+    public static function getSchemas()
+    {
+        return self::$oDB->selectIndexedColumn("
+            SELECT nspname, nspname
+                FROM pg_namespace
+                WHERE   nspname !~ '^pg_' AND
+                        nspname NOT IN ('information_schema', 'postgresql_deployer')
+                ORDER BY nspname;
+        ");
+    }
+
 }
 
 
