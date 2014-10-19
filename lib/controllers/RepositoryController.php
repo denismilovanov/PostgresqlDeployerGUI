@@ -188,8 +188,16 @@ class RepositoryController {
         $sObjectIndex = $app['request']->get('object_index');
         $sFilename = $app['request']->get('file_name');
 
+        $sDescription = DBRepository::describe($sSchemaName, $sObjectIndex, $sFilename);
+
+        if ($app['request']->get('action') == 'download' and $sDescription) {
+            $sFileName = sys_get_temp_dir() . '/' . $sFilename . '.sql';
+            file_put_contents($sFileName, $sDescription);
+            return $app->sendFile($sFileName, 200, array('Content-type' => 'text/sql'), 'attachment');
+        }
+
         return $app['twig']->render('/describe.haml', array(
-            'sDescription' => DBRepository::describe($sSchemaName, $sObjectIndex, $sFilename),
+            'sDescription' => $sDescription,
         ));
     }
 
