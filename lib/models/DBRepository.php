@@ -411,6 +411,7 @@ class DBRepository
                             'new_object' => $bIsNew,
                             'not_in_git' => $bNotInGit,
                             'describe' => $bNotInGit and ($oDatabaseObject instanceof Table or $oDatabaseObject instanceof Type),
+                            'drop' => $bNotInGit and ($oDatabaseObject instanceof Table),
                         );
                     }
 
@@ -786,6 +787,30 @@ class DBRepository
         );
 
         return $oObject->describe();
+    }
+
+    /**
+     * Drops object
+     *
+     * @param string schema name
+     * @param string object index
+     * @param string object name
+     *
+     * @return boolean true if table was dropped
+     */
+
+    public static function drop($sSchemaName, $sObjectIndex, $sObjectName)
+    {
+        // make object
+        $oObject = DatabaseObject::make(
+            self::$sDatabase,
+            $sSchemaName,
+            $sObjectIndex,
+            $sObjectName,
+            ''
+        );
+
+        return $oObject->drop();
     }
 
 }

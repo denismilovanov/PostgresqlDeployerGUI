@@ -51,6 +51,7 @@ $app->get('/{database_name}/{hash}/checkout/', 'RepositoryController::checkout')
 
 $app->get('/{database_name}/{schema_name}/{object_index}/{file_name}/view_diff/', 'RepositoryController::viewDiff')->before('RepositoryController::useDatabase');
 $app->get('/{database_name}/{schema_name}/{object_index}/{file_name}/describe/', 'RepositoryController::describe')->before('RepositoryController::useDatabase');
+$app->post('/{database_name}/{schema_name}/{object_index}/{file_name}/drop/', 'RepositoryController::drop')->before('RepositoryController::useDatabase');
 
 $app->post('{database_name}/apply/', 'RepositoryController::apply')->before('RepositoryController::useDatabase');
 

@@ -124,15 +124,20 @@
                         {{/not_in_git}}
                     %td.item.item-view-diff
                         {{^not_in_git}}
-                        %a{ :href => "/{{database_name}}/{{schema_name}}/{{object_index}}/{{object_name}}/view_diff/", :target => "_blank", :style => "text-decoration: none;" }
-                            %span.solid-link
+                        %a{ :href => "/{{database_name}}/{{schema_name}}/{{object_index}}/{{object_name}}/view_diff/", :target => "_blank", :style => "text-decoration: none; margin-right: 20px;" }<>
+                            %span.solid-link<>
                                 View diff
                         {{/not_in_git}}
                         {{#describe}}
-                        %a{ :href => "/{{database_name}}/{{schema_name}}/{{object_index}}/{{object_name}}/describe/", :target => "_blank", :style => "text-decoration: none;" }
-                            %span.solid-link
+                        %a{ :href => "/{{database_name}}/{{schema_name}}/{{object_index}}/{{object_name}}/describe/", :target => "_blank", :style => "text-decoration: none; margin-right: 20px;" }<>
+                            %span.solid-link<>
                                 Describe
                         {{/describe}}
+                        {{#drop}}
+                        %a{ :onclick => "Git.drop('{{schema_name}}', '{{object_index}}', '{{object_name}}'); return false;",  :style => "text-decoration: none; margin-right: 20px;" }<>
+                            %span.solid-link<>
+                                Drop
+                        {{/drop}}
                     %td.item.item-view-apply
                         {{^not_in_git}}
                         %input{ :class => "apply s-{{schema_name}} o-{{object_index}}", :type => "checkbox", :checked => null, :name => "{{schema_name}}/{{object_index}}/{{object_name}}", :value => "1" }

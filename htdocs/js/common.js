@@ -123,6 +123,26 @@ Git = {
         );
     },
 
+    drop: function(schema_name, object_index, object_name) {
+        if (! confirm('Are you sure to drop ' + schema_name + '.' + object_name + '?')) {
+            return;
+        }
+
+        Git.request(
+            'POST',
+            '/' + Git.database_name + '/' + schema_name + '/' + object_index + '/' + object_name + '/drop/' ,
+            {
+
+            },
+            function (data) {
+                Messager.alert(data.status, data.status == 1 ? 'Dropped' : data.message);
+                if (data.status == 1) {
+                    Git.checkout(Git.last_hash, false);
+                }
+            }
+        );
+    },
+
     reloadAndApply: function() {
         Git.checkout(Git.last_hash, false, function() {
             // check all checkboxes (they are not checked by default)

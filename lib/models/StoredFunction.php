@@ -116,6 +116,11 @@ class StoredFunction extends DatabaseObject
         return '';
     }
 
+    public function drop()
+    {
+        return true;
+    }
+
 }
 
 

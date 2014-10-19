@@ -40,6 +40,10 @@ class Seed extends DatabaseObject
         return '';
     }
 
+    public function drop()
+    {
+        return true;
+    }
 }
 
 

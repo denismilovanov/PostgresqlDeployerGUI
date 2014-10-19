@@ -130,6 +130,11 @@ class Type extends DatabaseObject
             implode(",\n", $aColumns) . "\n);";
     }
 
+    public function drop()
+    {
+        return true;
+    }
+
 }
 
 

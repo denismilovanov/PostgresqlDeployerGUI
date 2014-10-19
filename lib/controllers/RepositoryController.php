@@ -201,4 +201,23 @@ class RepositoryController {
         ));
     }
 
+    // action drop (ajax)
+    public function drop(Request $request, Application $app) {
+        $sSchemaName = $app['request']->get('schema_name');
+        $sObjectIndex = $app['request']->get('object_index');
+        $sFilename = $app['request']->get('file_name');
+
+        $aResult = array();
+
+        try {
+            DBRepository::drop($sSchemaName, $sObjectIndex, $sFilename);
+            $aResult['status'] = 1;
+        } catch (Exception $e) {
+            $aResult['status'] = 0;
+            $aResult['message'] = $e->getMessage();
+        }
+
+        return $app->json($aResult);
+    }
+
 }

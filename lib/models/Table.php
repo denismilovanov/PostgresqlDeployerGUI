@@ -8,7 +8,15 @@ class Table extends DatabaseObject
 
     public function objectExists()
     {
-        return true;
+        return (boolean)self::$oDB->selectField("
+            SELECT 1
+                FROM pg_tables
+                WHERE   schemaname = ?w AND
+                        tablename = ?w
+        ",
+            $this->sSchemaName,
+            $this->sObjectName
+        );
     }
 
     public function getObjectDependencies()
@@ -64,6 +72,23 @@ class Table extends DatabaseObject
         $sOutput = trim($sOutput);
 
         return $sOutput;
+    }
+
+    public function drop()
+    {
+        if ($this->objectExists()) {
+            self::$oDB->t()->query("
+                DROP TABLE ?.?
+            ",
+                // this variables were checked in objectExists so we can drop nothing but pointed table
+                $this->sSchemaName,
+                $this->sObjectName
+            );
+        } else {
+            throw new Exception("There is no table.");
+        }
+
+        return true;
     }
 
 }
