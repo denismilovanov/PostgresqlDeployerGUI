@@ -410,7 +410,7 @@ class DBRepository
                             'manual_deployment_required' => (($oDatabaseObject instanceof Table) and $bInGit) ? true : null,
                             'new_object' => $bIsNew,
                             'not_in_git' => $bNotInGit,
-                            'describe' => $bNotInGit and ($oDatabaseObject instanceof Table),
+                            'describe' => $bNotInGit and ($oDatabaseObject instanceof Table or $oDatabaseObject instanceof Type),
                         );
                     }
 

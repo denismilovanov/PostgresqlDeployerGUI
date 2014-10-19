@@ -102,7 +102,32 @@ class Type extends DatabaseObject
 
     public function describe()
     {
-        return '';
+        $aColumns = self::$oDB->selectColumn("
+            SELECT  E'\t' || attribute_name || ' ' ||
+                    CASE data_type
+                        WHEN 'character varying' THEN data_type ||
+                            CASE WHEN character_maximum_length IS NOT NULL THEN '(' || character_maximum_length || ')'
+                                 ELSE ''
+                            END
+                        WHEN 'numeric' THEN data_type ||
+                            CASE WHEN numeric_precision IS NOT NULL THEN '(' || numeric_precision || ',' || numeric_scale ||  ')'
+                                 ELSE ''
+                            END
+                        WHEN 'ARRAY' THEN attribute_udt_schema || '.' || substring(attribute_udt_name from 2) || '[]'
+                        WHEN 'USER-DEFINED' THEN attribute_udt_schema || '.' || attribute_udt_name
+                        ELSE data_type
+                    END
+                FROM information_schema.attributes
+                WHERE   udt_schema = ?w AND
+                        udt_name = ?w
+                ORDER BY ordinal_position;
+        ",
+            $this->sSchemaName,
+            $this->sObjectName
+        );
+
+        return "CREATE TYPE " . $this->sSchemaName . "." . $this->sObjectName . " AS (\n" .
+            implode(",\n", $aColumns) . "\n);";
     }
 
 }
