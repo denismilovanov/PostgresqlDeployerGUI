@@ -132,6 +132,7 @@ tt {
 
 .message {
     font-family: Courier;
+    white-space: pre;
 }
 
 .message-success {

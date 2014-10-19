@@ -15,7 +15,8 @@ class DBRepository
     private static $sDirectory = null;
     private static $sDatabase = null;
     private static $sSchemasPath = 'schemas/';
-    public static $sLastStatement = '';
+
+    private static $oLastAppliedObject = null;
 
     public static $aDatabases = array();
     public static $aBranches = array();
@@ -78,6 +79,32 @@ class DBRepository
     public static function getDBCredentials()
     {
         return self::$aDBCredentials;
+    }
+
+    /**
+     * Returns last applied object.
+     *
+     * @param none
+     *
+     * @return object
+     */
+
+    public static function getLastAppliedObject()
+    {
+        return self::$oLastAppliedObject;
+    }
+
+    /**
+     * Sets last applied object.
+     *
+     * @param object last applied object
+     *
+     * @return none
+     */
+
+    public static function setLastAppliedObject($oLastAppliedObject)
+    {
+        self::$oLastAppliedObject = $oLastAppliedObject;
     }
 
     /**

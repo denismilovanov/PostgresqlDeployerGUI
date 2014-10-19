@@ -64,6 +64,8 @@ class Type extends DatabaseObject
 
         $aDroppedFunctions = array();
 
+        DBRepository::setLastAppliedObject($this);
+
         if ($this->signatureChanged()) {
             $aDroppedFunctionsRaw = self::$oDB->selectTable("
                 SELECT *

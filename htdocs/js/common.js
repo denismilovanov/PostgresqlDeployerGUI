@@ -7,7 +7,6 @@ Messager = {
         } else {
             message = '<span class="message message-alert">' + message + '</span><br />';
         }
-        message = message.replace(/([^>])\n/g, '$1<br/>');
         $("#messages-panel-anchor").before(message);
         $('#messages-panel').scrollTop($('#messages-panel')[0].scrollHeight);
     }

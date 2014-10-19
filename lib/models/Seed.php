@@ -24,6 +24,8 @@ class Seed extends DatabaseObject
             return;
         }
 
+        DBRepository::setLastAppliedObject($this);
+
         self::$oDB->query(self::stripTransaction($this->sObjectContent));
     }
 

@@ -176,7 +176,7 @@ class RepositoryController {
             $aResult['status'] = 1;
         } catch (Exception $e) {
             $aResult['status'] = 0;
-            $aResult['message'] = $e->getMessage() . ": " . DBRepository::$sLastStatement;
+            $aResult['message'] = $e->getMessage() . "\nat " . (string)DBRepository::getLastAppliedObject();
         }
 
         return $app->json($aResult);

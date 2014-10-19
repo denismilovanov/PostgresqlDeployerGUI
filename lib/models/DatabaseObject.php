@@ -10,6 +10,11 @@ abstract class DatabaseObject
     public static $iCurrentUserId;
     public static $bImitate;
 
+    public function __toString()
+    {
+        return $this->sSchemaName . '/' . $this->sObjectIndex . '/' . $this->sObjectName;
+    }
+
     private static function getObjectsIndexes()
     {
         return array('tables', 'types', 'seeds', 'functions');

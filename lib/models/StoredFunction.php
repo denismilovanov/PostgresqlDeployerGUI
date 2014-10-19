@@ -92,6 +92,8 @@ class StoredFunction extends DatabaseObject
             );
         }
 
+        DBRepository::setLastAppliedObject($this);
+
         self::$oDB->query(self::stripTransaction($this->sObjectContent));
     }
 

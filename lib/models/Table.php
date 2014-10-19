@@ -26,6 +26,8 @@ class Table extends DatabaseObject
         if (self::$bImitate) {
             return;
         }
+
+        DBRepository::setLastAppliedObject($this);
     }
 
     public function hasChanged($sCurrentHash)
