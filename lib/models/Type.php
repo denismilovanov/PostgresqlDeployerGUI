@@ -5,7 +5,15 @@ class Type extends DatabaseObject
 
     public function objectExists()
     {
-        return true;
+        return (boolean)self::$oDB->selectField("
+            SELECT 1
+                FROM information_schema.user_defined_types
+                WHERE   user_defined_type_schema = ?w AND
+                        user_defined_type_name = ?w
+        ",
+            $this->sSchemaName,
+            $this->sObjectName
+        );
     }
 
     public function getObjectDependencies()
