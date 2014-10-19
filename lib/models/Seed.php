@@ -5,7 +5,15 @@ class Seed extends DatabaseObject
 
     public function objectExists()
     {
-        return true;
+        return (boolean)self::$oDB->selectField("
+            SELECT 1
+                FROM pg_tables
+                WHERE   schemaname = ?w AND
+                        tablename = ?w
+        ",
+            $this->sSchemaName,
+            $this->sObjectName
+        );
     }
 
     public function getObjectDependencies()
