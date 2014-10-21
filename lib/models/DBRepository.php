@@ -544,9 +544,10 @@ class DBRepository
         $sOutput = preg_replace("~^---.*$~uixm", "", $sOutput);
         $sOutput = preg_replace("~^\+\+\+.*$~uixm", "", $sOutput);
 
-        $sOutput = preg_replace("~^(-.*)$~uixm", "<del>$1</del>", $sOutput);
-        $sOutput = preg_replace("~^(\+.*)$~uixm", "<ins>$1</ins>", $sOutput);
+        $sOutput = preg_replace("~^-(.*)$~uixm", "<del>$1</del>", $sOutput);
+        $sOutput = preg_replace("~^\+(.*)$~uixm", "<ins>$1</ins>", $sOutput);
         $sOutput = preg_replace("~^(@@.+@@)$~uixm", "<tt>$1</tt>", $sOutput);
+        $sOutput = preg_replace("~^\s~uixm", "", $sOutput);
         $sOutput = trim($sOutput);
 
         unlink($sFileInRepository);
