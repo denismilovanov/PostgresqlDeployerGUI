@@ -43,7 +43,7 @@ class Seed extends DatabaseObject
                 self::$aMigrations[$this->sSchemaName][$this->sObjectIndex][$this->sObjectName] != $sCurrentHash;
     }
 
-    public function describe()
+    public function define()
     {
         return '';
     }

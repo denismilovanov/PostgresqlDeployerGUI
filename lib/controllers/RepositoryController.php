@@ -182,22 +182,22 @@ class RepositoryController {
         return $app->json($aResult);
     }
 
-    // action describe (html)
-    public function describe(Request $request, Application $app) {
+    // action define (html)
+    public function define(Request $request, Application $app) {
         $sSchemaName = $app['request']->get('schema_name');
         $sObjectIndex = $app['request']->get('object_index');
         $sFilename = $app['request']->get('file_name');
 
-        $sDescription = DBRepository::describe($sSchemaName, $sObjectIndex, $sFilename);
+        $sDefinition = DBRepository::define($sSchemaName, $sObjectIndex, $sFilename);
 
-        if ($app['request']->get('action') == 'download' and $sDescription) {
+        if ($app['request']->get('action') == 'download' and $sDefinition) {
             $sFileName = sys_get_temp_dir() . '/' . $sFilename . '.sql';
-            file_put_contents($sFileName, $sDescription);
+            file_put_contents($sFileName, $sDefinition);
             return $app->sendFile($sFileName, 200, array('Content-type' => 'text/sql'), 'attachment');
         }
 
-        return $app['twig']->render('/describe.haml', array(
-            'sDescription' => $sDescription,
+        return $app['twig']->render('/define.haml', array(
+            'sDefinition' => $sDefinition,
         ));
     }
 

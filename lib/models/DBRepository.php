@@ -410,7 +410,7 @@ class DBRepository
                             'manual_deployment_required' => (($oDatabaseObject instanceof Table) and $bInGit) ? true : null,
                             'new_object' => $bIsNew,
                             'not_in_git' => $bNotInGit,
-                            'describe' => $bNotInGit and ($oDatabaseObject instanceof Table or $oDatabaseObject instanceof Type),
+                            'define' => $bNotInGit and ($oDatabaseObject instanceof Table or $oDatabaseObject instanceof Type),
                             'drop' => $bNotInGit and ($oDatabaseObject instanceof Table),
                         );
                     }
@@ -767,7 +767,7 @@ class DBRepository
     }
 
     /**
-     * Describes object
+     * Makes object definition
      *
      * @param string schema name
      * @param string object index
@@ -776,7 +776,7 @@ class DBRepository
      * @return Object SQL description
      */
 
-    public static function describe($sSchemaName, $sObjectIndex, $sObjectName)
+    public static function define($sSchemaName, $sObjectIndex, $sObjectName)
     {
         // make object
         $oObject = DatabaseObject::make(
@@ -787,7 +787,7 @@ class DBRepository
             ''
         );
 
-        return $oObject->describe();
+        return $oObject->define();
     }
 
     /**

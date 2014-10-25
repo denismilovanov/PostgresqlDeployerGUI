@@ -128,11 +128,11 @@
                             %span.solid-link<>
                                 View diff
                         {{/not_in_git}}
-                        {{#describe}}
-                        %a{ :href => "/{{database_name}}/{{schema_name}}/{{object_index}}/{{object_name}}/describe/", :target => "_blank", :style => "text-decoration: none; margin-right: 20px;" }<>
+                        {{#define}}
+                        %a{ :href => "/{{database_name}}/{{schema_name}}/{{object_index}}/{{object_name}}/define/", :target => "_blank", :style => "text-decoration: none; margin-right: 20px;" }<>
                             %span.solid-link<>
-                                Describe
-                        {{/describe}}
+                                Define
+                        {{/define}}
                         {{#drop}}
                         %a{ :onclick => "Git.drop('{{schema_name}}', '{{object_index}}', '{{object_name}}'); return false;",  :style => "text-decoration: none; margin-right: 20px;" }<>
                             %span.solid-link<>

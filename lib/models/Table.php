@@ -44,7 +44,7 @@ class Table extends DatabaseObject
                 self::$aMigrations[$this->sSchemaName][$this->sObjectIndex][$this->sObjectName] != $sCurrentHash;
     }
 
-    public function describe()
+    public function define()
     {
         // to get server version and connection params
         $aCredentials = DBRepository::getDBCredentials();

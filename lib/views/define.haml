@@ -2,23 +2,23 @@
 
 - block content
 
-    -if sDescription
+    -if sDefinition
 
         %table.table
             %tr
                 %td{ :width => "100%"}
                     %div.pre<>
-                        = sDescription
+                        = sDefinition
 
         %form{ :action => "?", :method => "get" }
             %input{ :type => "hidden", :name => "action", :value => "download" }
-            %button.btn.btn-success#download-description{ :type => "submit", :style => "font-weight: bold;" }
+            %button.btn.btn-success#download-definition{ :type => "submit", :style => "font-weight: bold;" }
                 Download
 
     -else
 
         %h3
-            Unable to describe.
+            Unable to get definition via pg_dump.
 
 
 
