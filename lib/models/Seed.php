@@ -48,6 +48,11 @@ class Seed extends DatabaseObject
         return '';
     }
 
+    public function describe()
+    {
+        return $this->define();
+    }
+
     public function drop()
     {
         return true;

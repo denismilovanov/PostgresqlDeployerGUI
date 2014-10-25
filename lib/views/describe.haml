@@ -1,0 +1,32 @@
+- extends 'header.haml'
+
+- block content
+
+    -if sDescription
+
+        %table.table
+            %tr
+                %td{ :width => "100%"}
+                    %div.pre<>
+                        = sDescription
+
+        %form{ :action => "?", :method => "get" }
+            %input{ :type => "hidden", :name => "action", :value => "download" }
+            %button.btn.btn-success#download-description{ :type => "submit", :style => "font-weight: bold;" }
+                Download
+
+    -else
+
+        %h3
+            Unable to get definition via psql.
+
+
+
+
+
+
+
+
+
+
+

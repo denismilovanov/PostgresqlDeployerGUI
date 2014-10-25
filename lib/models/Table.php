@@ -1,8 +1,5 @@
 <?php
 
-// for external `pg_dump`
-use Symfony\Component\Process\ProcessBuilder;
-
 class Table extends DatabaseObject
 {
 
@@ -46,23 +43,14 @@ class Table extends DatabaseObject
 
     public function define()
     {
-        // to get server version and connection params
-        $aCredentials = DBRepository::getDBCredentials();
-
-        // make pg_dump process
-        $oBuilder = new ProcessBuilder(array(
-            '/usr/lib/postgresql/' . $aCredentials['version'] . '/bin/pg_dump',
-            '--schema-only',
-            '-t', $this->sSchemaName . '.' . $this->sObjectName,
-            '-U', $aCredentials['user_name'],
-            '-h', $aCredentials['host'],
-            '-p', $aCredentials['port'],
-            $aCredentials['db_name']
-        ));
-        $oDiff = $oBuilder->getProcess();
-        $oDiff->run();
-
-        $sOutput = $oDiff->getOutput();
+        $sOutput = DBRepository::callExternalTool(
+            'pg_dump',
+            array(
+                '--schema-only',
+                '-t',
+                $this->sSchemaName . '.' . $this->sObjectName
+            )
+        );
 
         $sOutput = preg_replace("~^--.*~uixm", "", $sOutput);
         $sOutput = preg_replace("~^SET.*~uixm", "", $sOutput);
@@ -70,6 +58,16 @@ class Table extends DatabaseObject
         $sOutput = preg_replace("~\\n\\n~uixs", "\n", $sOutput);
 
         $sOutput = trim($sOutput);
+
+        return $sOutput;
+    }
+
+    public function describe()
+    {
+        $sOutput = DBRepository::callExternalTool(
+            'psql',
+            array('-c\d+ ' . $this->sSchemaName . '.' . $this->sObjectName)
+        );
 
         return $sOutput;
     }

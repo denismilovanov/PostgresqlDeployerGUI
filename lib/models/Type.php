@@ -138,6 +138,16 @@ class Type extends DatabaseObject
             implode(",\n", $aColumns) . "\n);";
     }
 
+    public function describe()
+    {
+        $sOutput = DBRepository::callExternalTool(
+            'psql',
+            array('-c\d+ ' . $this->sSchemaName . '.' . $this->sObjectName)
+        );
+
+        return $sOutput;
+    }
+
     public function drop()
     {
         return true;

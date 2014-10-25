@@ -412,6 +412,7 @@ class DBRepository
                             'not_in_git' => $bNotInGit,
                             'define' => $bNotInGit and ($oDatabaseObject instanceof Table or $oDatabaseObject instanceof Type),
                             'drop' => $bNotInGit and ($oDatabaseObject instanceof Table),
+                            'describe' => $bInGit and ! $bIsNew and ($oDatabaseObject instanceof Table or $oDatabaseObject instanceof Type),
                         );
                     }
 
@@ -773,7 +774,7 @@ class DBRepository
      * @param string object index
      * @param string object name
      *
-     * @return Object SQL description
+     * @return Object SQL definition (pg_dump output for tables and types)
      */
 
     public static function define($sSchemaName, $sObjectIndex, $sObjectName)
@@ -788,6 +789,30 @@ class DBRepository
         );
 
         return $oObject->define();
+    }
+
+    /**
+     * Makes object description
+     *
+     * @param string schema name
+     * @param string object index
+     * @param string object name
+     *
+     * @return Object description (psql output for tables and types)
+     */
+
+    public static function describe($sSchemaName, $sObjectIndex, $sObjectName)
+    {
+        // make object
+        $oObject = DatabaseObject::make(
+            self::$sDatabase,
+            $sSchemaName,
+            $sObjectIndex,
+            $sObjectName,
+            ''
+        );
+
+        return $oObject->describe();
     }
 
     /**
@@ -812,6 +837,29 @@ class DBRepository
         );
 
         return $oObject->drop();
+    }
+
+    public static function callExternalTool($sTool, $aCmd)
+    {
+        // to get server version and connection params
+        $aCredentials = DBRepository::getDBCredentials();
+
+        $aCmd = array_merge(
+            array('/usr/lib/postgresql/' . $aCredentials['version'] . '/bin/' . $sTool),
+            $aCmd,
+            array(
+                '-U', $aCredentials['user_name'],
+                '-h', $aCredentials['host'],
+                '-p', $aCredentials['port'],
+                $aCredentials['db_name']
+            )
+        );
+
+        // make pg_dump process
+        $oBuilder = new ProcessBuilder($aCmd);
+        $oProcess = $oBuilder->getProcess();
+        $oProcess->run();
+        return $oProcess->getOutput();
     }
 
 }

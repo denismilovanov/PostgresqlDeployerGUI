@@ -126,13 +126,23 @@
                         {{^not_in_git}}
                         %a{ :href => "/{{database_name}}/{{schema_name}}/{{object_index}}/{{object_name}}/view_diff/", :target => "_blank", :style => "text-decoration: none; margin-right: 20px;" }<>
                             %span.solid-link<>
+                                {{#new_object}}
+                                View
+                                {{/new_object}}
+                                {{^new_object}}
                                 View diff
+                                {{/new_object}}
                         {{/not_in_git}}
                         {{#define}}
                         %a{ :href => "/{{database_name}}/{{schema_name}}/{{object_index}}/{{object_name}}/define/", :target => "_blank", :style => "text-decoration: none; margin-right: 20px;" }<>
                             %span.solid-link<>
                                 Define
                         {{/define}}
+                        {{#describe}}
+                        %a{ :href => "/{{database_name}}/{{schema_name}}/{{object_index}}/{{object_name}}/describe/", :target => "_blank", :style => "text-decoration: none; margin-right: 20px;" }<>
+                            %span.solid-link<>
+                                Describe
+                        {{/describe}}
                         {{#drop}}
                         %a{ :onclick => "Git.drop('{{schema_name}}', '{{object_index}}', '{{object_name}}'); return false;",  :style => "text-decoration: none; margin-right: 20px;" }<>
                             %span.solid-link<>
@@ -149,7 +159,7 @@
                     %td.item.item-dependent-name{ :colspan => 2, :style => "padding-left: 50px;" }
                         {{additional_sql}}
                     %td.item.item-view-diff
-                        %a{ :href => "/{{database_name}}/{{dependency_schema_name}}/{{dependency_object_index}}/{{dependency_object_name}}/view_diff/", :target => "_blank" }
+                        %a{ :href => "/{{database_name}}/{{dependency_schema_name}}/{{dependency_object_index}}/{{dependency_object_name}}/view_diff/", :style => "text-decoration: none;", :target => "_blank" }
                             %span.solid-link
                                 View diff
                     %td.item.item-view-apply

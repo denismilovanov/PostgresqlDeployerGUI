@@ -118,6 +118,8 @@ abstract class DatabaseObject
 
     abstract public function define();
 
+    abstract public function describe();
+
     abstract public function drop();
 
 }
