@@ -899,18 +899,34 @@ class DBRepository
 
     public static function callExternalTool($sTool, $aCmd)
     {
-        // to get server version and connection params
-        $aCredentials = DBRepository::getDBCredentials();
+        $aAdditionalCmd = array();
 
-        $aCmd = array_merge(
-            array('/usr/lib/postgresql/' . $aCredentials['version'] . '/bin/' . $sTool),
-            $aCmd,
-            array(
+        if ($sTool == 'psql' or $sTool == 'pg_dump') {
+            // to get server version and connection params
+            $aCredentials = DBRepository::getDBCredentials();
+
+            // path from settings
+            $sPath = self::getSettingValue('paths.pg_bin', '/usr/lib/postgresql/%v/bin/');
+            // replace %v for version
+            $sPath = str_replace("%v", $aCredentials['version'], $sPath);
+            // command to be executed = path + bin
+            $sCmd = $sPath . $sTool;
+
+            // credentials are needed
+            $aAdditionalCmd = array
+            (
                 '-U', $aCredentials['user_name'],
                 '-h', $aCredentials['host'],
                 '-p', $aCredentials['port'],
                 $aCredentials['db_name']
-            )
+            );
+        }
+
+        // merge command and its arguments
+        $aCmd = array_merge(
+            array($sCmd),
+            $aCmd,
+            $aAdditionalCmd
         );
 
         // make pg_dump process
