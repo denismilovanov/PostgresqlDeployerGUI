@@ -22,6 +22,9 @@ use Symfony\Component\Debug\ErrorHandler;
 ErrorHandler::register();
 
 // read config/databases.json
+DBRepository::readDatabases();
+
+// read config/settings.json
 DBRepository::readSettings();
 
 $app = new Silex\Application();

@@ -18,7 +18,13 @@ class DBRepository
 
     private static $oLastAppliedObject = null;
 
+    // settings of features
+    private static $aSettings = array();
+
+    // databases user can access and work with
     public static $aDatabases = array();
+
+    // branches of chosen repository
     public static $aBranches = array();
 
     /**
@@ -31,6 +37,53 @@ class DBRepository
 
     public static function readSettings()
     {
+        $sFileName = './../lib/config/settings.json';
+
+        if (! file_exists($sFileName) or ! is_readable($sFileName)) {
+            self::$aSettings = array();
+            return;
+        }
+
+        $aSettings = json_decode(file_get_contents($sFileName), 'associative');
+
+        // settings
+        self::$aSettings = isset($aSettings['settings']) ? $aSettings['settings'] : array();
+    }
+
+    /**
+     * Gets setting value
+     *
+     * @param string $sIndex composite, dot-imploded array index, e.g. 'not_in_git.active'
+     * @param mixed $mDefaultValue default value for case $sIndex is absent in settings array
+     *
+     * @return mixed setting value
+     */
+
+    public static function getSettingValue($sIndex, $mDefaultValue = false)
+    {
+        $aIndexes = explode(".", $sIndex);
+        $sExpression = '';
+        foreach ($aIndexes as $sIndex) {
+            $sExpression .= "['" . $sIndex . "']";
+        }
+        if (eval('return isset(self::$aSettings' . $sExpression . ');')) {
+            $mValue = eval('return self::$aSettings' . $sExpression . ';');
+            return $mValue;
+        } else {
+            return $mDefaultValue;
+        }
+    }
+
+    /**
+     * Reads databases from JSON configuration file.
+     *
+     * @param none
+     *
+     * @return none
+     */
+
+    public static function readDatabases()
+    {
         $sFileName = './../lib/config/databases.json';
 
         if (! file_exists($sFileName) or ! is_readable($sFileName)) {
@@ -38,10 +91,10 @@ class DBRepository
             return;
         }
 
-        $aSettings = json_decode(file_get_contents($sFileName), 'associative');
+        $aDatabases = json_decode(file_get_contents($sFileName), 'associative');
 
         // allowed databases
-        self::$aDatabases = isset($aSettings['databases']) ? $aSettings['databases'] : array();
+        self::$aDatabases = isset($aDatabases['databases']) ? $aDatabases['databases'] : array();
     }
 
     public static function sameDatabasesExist()
@@ -336,6 +389,9 @@ class DBRepository
             'schemas' => array(),
         );
 
+        //
+        $bShowObjectsNotInGit = self::getSettingValue('not_in_git.active');
+
         // for each schema
         foreach ($aSchemas as $sSchema) {
 
@@ -353,12 +409,14 @@ class DBRepository
                 $aFiles = self::getListOfFiles(self::$sDirectory . self::$sSchemasPath . $sSchema . "/" . $sObjectIndex);
                 // files have hash != ''
 
-                // ALL objects in database
-                $aObjects = Database::getObjectsAsVirtualFiles($sSchema, $sObjectIndex);
-                // hash == ''
+                if ($bShowObjectsNotInGit) {
+                    // ALL objects in database
+                    $aObjects = Database::getObjectsAsVirtualFiles($sSchema, $sObjectIndex);
+                    // hash == ''
 
-                // objects not under git will still have hash = ''
-                $aFiles = array_merge($aObjects, $aFiles);
+                    // objects not under git will still have hash = ''
+                    $aFiles = array_merge($aObjects, $aFiles);
+                }
 
                 //
                 sort($aFiles);
