@@ -4,13 +4,13 @@ PostgresqlDeployerGUI
 ### Intro
 
 PostgresqlDeployerGUI provides you web interface that simplifies deployment of PostgreSQL schema.
+Single database only, you can not deploy schema on two or more databases with sync commit.
 
-Consider single PostgreSQL database. Suppose that we are to deploy some schema changes.
-There are several approaches.
+Generally speaking there are several approaches to schema deployment.
 
 Popular approach is to use migrations. You take your favorite migration tool built in your framework,
 write 'up' code, write 'down' code, and you are done.
-Advantages are obvious: one after you can deploy schema changes to any machine (local, staging, production) very easily.
+Advantages are obvious: one after you can deploy schema changes on any machine (local, staging, production) very easily.
 
 But I see 2 problems here:
 
@@ -18,7 +18,7 @@ But I see 2 problems here:
 (fast `ALTER TABLE ADD COLUMN NULL` first, then `ALTER TABLE ALTER COLUMN SET DEFAULT`, then batch updates of null values),
 
 2) stored functions and types up and down migrations lead to great code overhead (to add one line in function you have to double
-its source code, to change function signature - you have to drop previous version).
+its source code, to change function signature - to drop its previous version, to change type signature - to redeploy its depending functions).
 
 That is why I don't believe in completely automatic migrations. They are suiteable only for small projects.
 
@@ -51,20 +51,26 @@ Clone repository:
 
     git clone https://github.com/denismilovanov/PostgresqlDeployerGUI.git
 
+Setup dependencies via composer:
+
+    cd lib && composer update
+
 Setup your web server:
 
     http://silex.sensiolabs.org/doc/web_servers.html
 
-Perform on your database (psql):
+Route all queries to `htdocs/index.php`.
+
+Perform on your database(s) (psql):
 
     \i db.schema/create_schema.sql
-    
+
 Add new user (psql will show how).
 
-Change config file:
+Create databases config file:
 
-    nano libs/databases.json
-    
+    nano lib/config/databases.json
+
 Example:
 
     {
@@ -96,6 +102,32 @@ Example:
         }
     }
 
+All `git-root's` directories should be opened for write to user your server (FPM-workers for example) is running at, 'cause interface will
+perform write-commands such as `git checkout`.
+
+Create settings file:
+
+    nano lib/config/settings.json
+
+Example:
+
+    {
+        "settings": {
+            "not_in_git": {
+                "active": true
+            },
+            "paths": {
+                "pg_bin": "/usr/lib/postgresql/%v/bin/"
+            }
+        }
+    }
+
+Explanation:
+
+1) not_in_git - this option tells if non-git database objects are shown (they will be marked as `NOT IN GIT`),
+2) pg_bin - path to psql and pg_dump executables (%v will be replaced to MAJOR.MINOR version of current database you work at).
+
+You may omit any of these options.
 
 ### Repository
 
@@ -169,7 +201,7 @@ These cases related to functions currently are not supported:
 
 1. Trigger functions.
 2. Functions indexes are based on.
-3. Functions overloading. It is not allowed to have more than one procedures with the same or different names in one file.
+3. Functions overloading. It is not allowed to have more than one functions with the same or different names in one file.
 
 When you use custom type name you should also provide schema name (even if schema is in `search_path`):
 
