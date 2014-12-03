@@ -225,6 +225,11 @@ class DBRepository
             throw new Exception("There is no credentials for '$sDatabaseIndex'.");
         }
 
+        // schemas_path can be overriden
+        if (isset($aDatabases[$sDatabaseIndex]['schemas_path'])) {
+            self::$sSchemasPath = $aDatabases[$sDatabaseIndex]['schemas_path'];
+        }
+
         // make connection
         self::$aDBCredentials = $aDatabases[$sDatabaseIndex]['credentials'];
         self::$oDB = new LibPostgresDriver(self::$aDBCredentials);
