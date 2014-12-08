@@ -44,7 +44,6 @@ Git = {
             function (data) {
                 if (data.status == 1) {
                     $(".commit").removeClass("commit-active");
-                    $("#commit-" + hash).addClass("commit-active");
                     Git.clearDiff();
                     data.commit_hash = hash;
                     $("#diff").html(Mustache.render(Git.diff_template, data));
