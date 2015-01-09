@@ -27,6 +27,10 @@
                 / messages panel
                 .panel.panel-default{ :style => "margin-right: 10px;" }
                     .panel-body#messages-panel{ :style => "height: 180px; overflow-y: scroll;" }
+                        -for sInitialMessage in aInitialMessages
+                            %span.message<>
+                                = sInitialMessage
+                            %br<>
                         %span#messages-panel-anchor
 
             %td{ :style => "width: 180px;" }

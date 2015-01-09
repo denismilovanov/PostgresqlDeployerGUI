@@ -122,6 +122,19 @@ class DBRepository
     }
 
     /**
+     * Returns current database.
+     *
+     * @param none
+     *
+     * @return string database
+     */
+
+    public static function getCurrentDatabase()
+    {
+        return self::$sDatabase;
+    }
+
+    /**
      * Returns DB credentials.
      *
      * @param none
@@ -820,6 +833,13 @@ class DBRepository
                 $aSeed->upsertMigration();
             }
 
+            //
+            if (self::getSettingValue('plpgsql_check.active')) {
+                // let's check stored functions
+                Database::checkAllStoredFunctionsByPlpgsqlCheck();
+                // says rollback and throws exception if check fails
+            }
+
             // say commit
             self::$oDB->commit();
 
@@ -939,6 +959,17 @@ class DBRepository
         $oProcess = $oBuilder->getProcess();
         $oProcess->run();
         return $oProcess->getOutput();
+    }
+
+    /**
+     * Gets initial messages
+     *
+     * @return array messages
+     */
+
+    public static function getInitialMessages()
+    {
+        return Database::getPlpgsqlCheckStatus();
     }
 
 }

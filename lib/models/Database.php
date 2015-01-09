@@ -78,6 +78,62 @@ class Database
         ");
     }
 
+    public static function getPlpgsqlCheckStatus()
+    {
+        if (! DBRepository::getSettingValue('plpgsql_check.active')) {
+            return array();
+        }
+
+        return array(
+            self::$oDB->selectField("
+                SELECT postgresql_deployer.test_plpgsql_check_extension();
+            "),
+        );
+    }
+
+    public static function checkAllStoredFunctionsByPlpgsqlCheck()
+    {
+        // check all nontrigger functions
+        $aResult = self::$oDB->selectRecord("
+            WITH data AS (
+                SELECT  n.nspname AS schema_name,
+                        p.proname AS object_name,
+                        (SELECT array_to_string(array(SELECT * FROM plpgsql_check_function(p.oid)), E'\n')) AS comment
+                    FROM pg_catalog.pg_namespace n
+                    JOIN pg_catalog.pg_proc AS p
+                        ON pronamespace = n.oid
+                    JOIN pg_catalog.pg_language AS l
+                        ON p.prolang = l.oid
+                    WHERE   l.lanname = 'plpgsql' AND
+                            p.prorettype <> 2279 AND
+                            p.proname NOT IN ('test_plpgsql_check_extension', 'test_plpgsql_check_function')
+
+            )
+            SELECT *
+                FROM data
+                WHERE comment != ''
+                ORDER BY schema_name, object_name
+                LIMIT 1; -- one bad function is enough
+        ");
+
+        // do we have at least one bad function?
+        if ($aResult) {
+            // make object for it
+            $oFunction = DatabaseObject::make(
+                DBRepository::getCurrentDatabase(),
+                $aResult['schema_name'],
+                'functions',
+                $aResult['object_name'],
+                ''
+            );
+            DBRepository::setLastAppliedObject($oFunction);
+            // break main transaction
+            self::$oDB->rollback();
+            //
+            throw new Exception($aResult['comment']);
+        }
+    }
+
 }
 
 

@@ -355,8 +355,51 @@ CREATE TABLE IF NOT EXISTS postgresql_deployer.migration_log (
 );
 
 ----------------------------------------------------------------------------
+-- create test function for plpgsql_check
+
+CREATE OR REPLACE FUNCTION postgresql_deployer.test_plpgsql_check_function() RETURNS void AS
+$BODY$
+BEGIN
+
+    SELECT * FROM postgresql_deployer.non_existing;
+
+END
+$BODY$ LANGUAGE plpgsql STABLE;
+
+----------------------------------------------------------------------------
+-- test for plpgsql_check
+
+CREATE OR REPLACE FUNCTION postgresql_deployer.test_plpgsql_check_extension() RETURNS text AS
+$BODY$
+DECLARE
+    o_oid oid;
+BEGIN
+
+    SELECT oid INTO o_oid
+        FROM pg_proc
+        WHERE proname = 'test_plpgsql_check_function';
+
+    IF NOT FOUND THEN
+        RETURN 'There is no postgresql_deployer.test_plpgsql_check_function function';
+    END IF;
+
+    -- perform function check
+    BEGIN
+        PERFORM plpgsql_check_function(o_oid);
+    EXCEPTION WHEN others THEN
+        -- extension fails
+        RETURN 'plpgsql_check_function is NOT ready';
+    END;
+
+    RETURN 'plpgsql_check_function is ready';
+
+END
+$BODY$ LANGUAGE plpgsql VOLATILE;
+
+----------------------------------------------------------------------------
 -- that's all
 
 SELECT 'type "COMMIT".';
 SELECT 'then "SELECT postgresql_deployer.add_user(name, email, pass);" to create user.';
+SELECT postgresql_deployer.test_plpgsql_check_extension();
 
