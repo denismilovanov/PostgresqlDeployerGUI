@@ -110,7 +110,7 @@ class RepositoryController {
     // action index
     public function index(Request $request, Application $app) {
         return $app['twig']->render('/index.haml', array(
-
+            'bReloadAndApply' => DBRepository::getSettingValue('reload_and_apply.active'),
         ));
     }
 

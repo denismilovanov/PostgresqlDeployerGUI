@@ -37,10 +37,13 @@
                             Apply
                         %br
                         %br
-                        %button.btn.btn-success#reload-and-apply{ :type => "button", :style => "font-weight: bold;" }
-                            Reload & apply
-                        %br
-                        %br
+
+                        -if bReloadAndApply
+                            %button.btn.btn-success#reload-and-apply{ :type => "button", :style => "font-weight: bold;" }
+                                Reload & apply
+                            %br
+                            %br
+
                         %button.btn.btn-warning.btn-sm#imitate{ :type => "button", :style => "" }
                             Imitate
 

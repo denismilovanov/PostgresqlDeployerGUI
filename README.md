@@ -116,6 +116,9 @@ Example:
             "not_in_git": {
                 "active": true
             },
+            "reload_and_apply": {
+                "active": true
+            },
             "paths": {
                 "pg_bin": "/usr/lib/postgresql/%v/bin/"
             }
@@ -125,7 +128,8 @@ Example:
 Explanation:
 
 1) not_in_git - this option tells if non-git database objects are shown (they will be marked as `NOT IN GIT`),
-2) pg_bin - path to psql and pg_dump executables (%v will be replaced to MAJOR.MINOR version of current database you work at).
+2) reload_and_apply - show 'Reload and apply' button (makes sense for development purposes only, not in production),
+3) pg_bin - path to psql and pg_dump executables (%v will be replaced to MAJOR.MINOR version of current database you work at).
 
 You may omit any of these options.
 
