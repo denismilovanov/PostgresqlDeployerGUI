@@ -43,13 +43,15 @@ class Table extends DatabaseObject
 
     public function define()
     {
+        $sError = '';
         $sOutput = DBRepository::callExternalTool(
             'pg_dump',
             array(
                 '--schema-only',
                 '-t',
                 $this->sSchemaName . '.' . $this->sObjectName
-            )
+            ),
+            $sError
         );
 
         $sOutput = preg_replace("~^--.*~uixm", "", $sOutput);
@@ -59,17 +61,25 @@ class Table extends DatabaseObject
 
         $sOutput = trim($sOutput);
 
-        return $sOutput;
+        return array(
+            'definition' => $sOutput,
+            'error' => $sError,
+        );
     }
 
     public function describe()
     {
+        $sError = '';
         $sOutput = DBRepository::callExternalTool(
             'psql',
-            array('-c\d+ ' . $this->sSchemaName . '.' . $this->sObjectName)
+            array('-c\d+ ' . $this->sSchemaName . '.' . $this->sObjectName),
+            $sError
         );
 
-        return $sOutput;
+        return array(
+            'description' => $sOutput,
+            'error' => $sError,
+        );
     }
 
     public function drop()

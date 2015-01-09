@@ -922,7 +922,7 @@ class DBRepository
         return $oObject->drop();
     }
 
-    public static function callExternalTool($sTool, $aCmd)
+    public static function callExternalTool($sTool, $aCmd, & $sError = '')
     {
         $aAdditionalCmd = array();
 
@@ -954,10 +954,11 @@ class DBRepository
             $aAdditionalCmd
         );
 
-        // make pg_dump process
+        // make process
         $oBuilder = new ProcessBuilder($aCmd);
         $oProcess = $oBuilder->getProcess();
         $oProcess->run();
+        $sError = $oProcess->getErrorOutput();
         return $oProcess->getOutput();
     }
 

@@ -189,7 +189,9 @@ class RepositoryController {
         $sObjectIndex = $app['request']->get('object_index');
         $sFilename = $app['request']->get('file_name');
 
-        $sDefinition = DBRepository::define($sSchemaName, $sObjectIndex, $sFilename);
+        $aDefinition = DBRepository::define($sSchemaName, $sObjectIndex, $sFilename);
+        $sDefinition = $aDefinition['definition'];
+        $sError = $aDefinition['error'];
 
         if ($app['request']->get('action') == 'download' and $sDefinition) {
             $sFileName = sys_get_temp_dir() . '/' . $sFilename . '.sql';
@@ -199,6 +201,7 @@ class RepositoryController {
 
         return $app['twig']->render('/define.haml', array(
             'sDefinition' => $sDefinition,
+            'sError' => $sError,
         ));
     }
 
@@ -208,7 +211,9 @@ class RepositoryController {
         $sObjectIndex = $app['request']->get('object_index');
         $sFilename = $app['request']->get('file_name');
 
-        $sDescription = DBRepository::describe($sSchemaName, $sObjectIndex, $sFilename);
+        $aDescription = DBRepository::describe($sSchemaName, $sObjectIndex, $sFilename);
+        $sDescription = $aDescription['description'];
+        $sError = $aDescription['error'];
 
         if ($app['request']->get('action') == 'download' and $sDescription) {
             $sFileName = sys_get_temp_dir() . '/' . $sFilename . '.sql';
@@ -218,6 +223,7 @@ class RepositoryController {
 
         return $app['twig']->render('/describe.haml', array(
             'sDescription' => $sDescription,
+            'sError' => $sError,
         ));
     }
 

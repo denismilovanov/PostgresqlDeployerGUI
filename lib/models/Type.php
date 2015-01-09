@@ -134,18 +134,26 @@ class Type extends DatabaseObject
             $this->sObjectName
         );
 
-        return "CREATE TYPE " . $this->sSchemaName . "." . $this->sObjectName . " AS (\n" .
-            implode(",\n", $aColumns) . "\n);";
+        return array(
+            'definition' => "CREATE TYPE " . $this->sSchemaName . "." . $this->sObjectName . " AS (\n" .
+                                implode(",\n", $aColumns) . "\n);",
+            'error' => '',
+        );
     }
 
     public function describe()
     {
+        $sError = '';
         $sOutput = DBRepository::callExternalTool(
             'psql',
-            array('-c\d+ ' . $this->sSchemaName . '.' . $this->sObjectName)
+            array('-c\d+ ' . $this->sSchemaName . '.' . $this->sObjectName),
+            $sError
         );
 
-        return $sOutput;
+        return array(
+            'description' => $sOutput,
+            'error' => $sError,
+        );
     }
 
     public function drop()
