@@ -240,6 +240,10 @@ class DBRepository
 
         // schemas_path can be overriden
         if (isset($aDatabases[$sDatabaseIndex]['schemas_path'])) {
+            if (! preg_match("~/$~uixs", $aDatabases[$sDatabaseIndex]['schemas_path'])) {
+                // add slash to the end
+                $aDatabases[$sDatabaseIndex]['schemas_path'] .= '/';
+            }
             self::$sSchemasPath = $aDatabases[$sDatabaseIndex]['schemas_path'];
         }
 
@@ -260,6 +264,10 @@ class DBRepository
         DatabaseObject::$oDB = self::$oDB;
 
         // make git
+        if (! preg_match("~/$~uixs", $aDatabases[$sDatabaseIndex]['git_root'])) {
+            // add slash to the end
+            $aDatabases[$sDatabaseIndex]['git_root'] .= '/';
+        }
         self::$oGit = new Repository($aDatabases[$sDatabaseIndex]['git_root']);
 
         // branches
