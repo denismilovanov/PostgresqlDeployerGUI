@@ -35,10 +35,42 @@ class Table extends DatabaseObject
         DBRepository::setLastAppliedObject($this);
     }
 
+    public function forward()
+    {
+        if (self::$bImitate) {
+            return;
+        }
+
+        DBRepository::setLastAppliedObject($this);
+
+        $sForwardStatements = $this->getDiff()->getForwardStatements("\n");
+
+        $sForwardStatements = self::stripTransaction($sForwardStatements);
+
+        if ($sForwardStatements) {
+            self::$oDB->query($sForwardStatements);
+        }
+    }
+
     public function hasChanged($sCurrentHash)
     {
         return  ! isset(self::$aMigrations[$this->sSchemaName][$this->sObjectIndex][$this->sObjectName]) or
                 self::$aMigrations[$this->sSchemaName][$this->sObjectIndex][$this->sObjectName] != $sCurrentHash;
+    }
+
+    public function isDescribable ()
+    {
+        return true;
+    }
+
+    public function isDefinable ()
+    {
+        return true;
+    }
+
+    public function isDroppable ()
+    {
+        return true;
     }
 
     public function define()

@@ -104,11 +104,19 @@ class StoredFunction extends DatabaseObject
                 ! $this->objectExists();
     }
 
-    public function compare(StoredFunction $oAnotherFunction) {
-        return  $this->sDatabaseName == $oAnotherFunction->sDatabaseName and
-                $this->sSchemaName == $oAnotherFunction->sSchemaName and
-                $this->sObjectIndex == $oAnotherFunction->sObjectIndex and
-                $this->sObjectName == $oAnotherFunction->sObjectName;
+    public function isDescribable ()
+    {
+        return false;
+    }
+
+    public function isDefinable ()
+    {
+        return false;
+    }
+
+    public function isDroppable ()
+    {
+        return false;
     }
 
     public function define()

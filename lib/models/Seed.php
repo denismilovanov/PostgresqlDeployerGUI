@@ -43,6 +43,21 @@ class Seed extends DatabaseObject
                 self::$aMigrations[$this->sSchemaName][$this->sObjectIndex][$this->sObjectName] != $sCurrentHash;
     }
 
+    public function isDescribable ()
+    {
+        return false;
+    }
+
+    public function isDefinable ()
+    {
+        return false;
+    }
+
+    public function isDroppable ()
+    {
+        return false;
+    }
+
     public function define()
     {
         return array(

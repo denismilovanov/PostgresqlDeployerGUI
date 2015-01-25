@@ -35,6 +35,25 @@ Git = {
         });
     },
 
+    onApplyCheck: function(e) {
+        // when apply is checked/is not checked also check/uncheck forward (if exists)
+        var forward_id = $(e).attr('id').replace(/^apply/, 'forward');
+        var forward = $("#" + forward_id);
+        if ( ! forward.length) {
+            return;
+        }
+        forward.prop('checked', $(e).prop('checked'));
+    },
+
+    onForwardCheck: function(e) {
+        // when forward is checked also check apply
+        var apply_id = $(e).attr('id').replace(/^forward/, 'apply');
+        var apply = $("#" + apply_id);
+        if ($(e).prop('checked')) {
+            apply.prop('checked', true);
+        }
+    },
+
     checkout: function (hash, show_alert, f) {
         f = f || function() {};
         Git.request(
@@ -46,11 +65,33 @@ Git = {
                     $(".commit").removeClass("commit-active");
                     Git.clearDiff();
                     data.commit_hash = hash;
+                    //
                     $("#diff").html(Mustache.render(Git.diff_template, data));
+                    // listen to apply checkboxes
+                    $(".apply.apply-main").change(function() {
+                        Git.onApplyCheck(this);
+                    });
+                    // listen to forward checkboxes
+                    $(".apply.forward").change(function() {
+                        Git.onForwardCheck(this);
+                    });
+                    //
                     Git.last_hash = hash;
+                    //
                     Git.getCommits(function() {
                         if (show_alert) {
+                            // show current hash or branch
                             Messager.alert(1, 'Checked out to ' + hash);
+                            // show tables
+                            var cbf = data['stat']['can_be_forwarded'];
+                            if (cbf.length) {
+                                Messager.alert(1, 'Can be forwarded: ' + cbf.join(' -> '));
+                            }
+                            //
+                            var cnbf = data['stat']['cannot_be_forwarded'];
+                            if (cnbf.length) {
+                                Messager.alert(1, 'Cannot be forwarded: ' + cnbf.join(' -> '));
+                            }
                         }
                         f();
                     });
@@ -97,10 +138,27 @@ Git = {
 
         var objects = [];
 
-        $(".apply").filter(":checked").each(function(n, e) {
-            objects.push(e.name);
+        // foreach chosen object
+        $(".apply-main").filter(":checked").each(function(n, e) {
+            var forward_order = 0;
+            // do we have to use forward? let's see at special checkbox:
+            var ff = $("input[name='" + e.name + "/forward_order']");
+            var forwarded = false;
+            if (ff.length) {
+                // checkbox exists (for tables only)
+                forwarded = $(ff.get(0)).prop('checked');
+                // order is in value
+                forward_order = $(ff.get(0)).attr('value');
+            }
+            // gather information
+            objects.push({
+                object_name: e.name,
+                forwarded: forwarded ? 1 : 0,
+                forward_order: forward_order
+            });
         });
 
+        //
         if (objects.length == 0) {
             Messager.alert(1, 'Nothing to ' + (! imitate ? 'apply' : 'imitate'));
             return;

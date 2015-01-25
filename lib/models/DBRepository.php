@@ -283,6 +283,11 @@ class DBRepository
         self::$sDatabase = $sDatabaseIndex;
         self::$sDirectory = $aDatabases[$sDatabaseIndex]['git_root'];
 
+        // check if directory exists
+        if (! file_exists($sWorkingDir = self::$sDirectory . self::$sSchemasPath)) {
+            throw new Exception("There is no directory '$sWorkingDir'.");
+        }
+
         // return
         return $aDatabases[$sDatabaseIndex];
     }
@@ -469,6 +474,20 @@ class DBRepository
                     // has object been changed (git contains one version, but db contains another)
                     if ($oDatabaseObject->hasChanged($aFile['hash'])) {
 
+                        if ($bInGit) {
+                            $oDiff = $oDatabaseObject->createDiff();
+                            $iInsertions = $oDiff->getInsertionsCount();
+                            $iDeletions = $oDiff->getDeletionsCount();
+                        } else {
+                            $iInsertions = $iDeletions = null;
+                        }
+
+                        // get diff (insertions and deletions)
+                        $bCanBeForwarded = null;
+                        if ($bInGit and $oDatabaseObject instanceof Table) {
+                            $bCanBeForwarded = $oDiff->canBeForwarded();
+                        }
+
                         // we should show dependencies
                         $aDependencies = $oDatabaseObject->getObjectDependencies();
 
@@ -485,18 +504,44 @@ class DBRepository
                             $bReturnTypeChanged = false;
                         }
 
+                        // work with references list to show it in panel
+                        $ReferencesRaw = $oDiff->getReferences();
+                        $aReferences = array();
+                        foreach ($ReferencesRaw as $oReference) {
+                            $aReferences []= array(
+                                'reference_name' => (string)$oReference,
+                            );
+                        }
+
+                        // save data to be shown at diff panel
                         $aSchema['objects'] []= array(
                             'object_name' => $sObjectNameName,
+
+                            // dependencies
                             'dependencies' => $aDependencies,
                             'dependencies_exist' => $aDependencies ? true : null,
+                            'references' => $aReferences,
+                            'references_exist' => $aReferences ? true : null,
+
+                            // signatures
                             'signature_changed' => $bSignatureChanged,
                             'return_type_changed' => $bReturnTypeChanged,
+
+                            // git info
                             'manual_deployment_required' => (($oDatabaseObject instanceof Table) and $bInGit) ? true : null,
+                            'can_be_forwarded' => $bCanBeForwarded,
+                            'insertions' => $iInsertions,
+                            'deletions' => $iDeletions,
                             'new_object' => $bIsNew,
                             'not_in_git' => $bNotInGit,
-                            'define' => $bNotInGit and ($oDatabaseObject instanceof Table or $oDatabaseObject instanceof Type),
-                            'drop' => $bNotInGit and ($oDatabaseObject instanceof Table),
-                            'describe' => $bInGit and ! $bIsNew and ($oDatabaseObject instanceof Table or $oDatabaseObject instanceof Type),
+
+                            // available operations
+                            'define' => $bNotInGit and $oDatabaseObject->isDefinable(),
+                            'drop' => $bNotInGit and $oDatabaseObject->isDroppable(),
+                            'describe' => $bInGit and ! $bIsNew and $oDatabaseObject->isDescribable(),
+
+                            // save object to work with collection of them to find references
+                            'database_object' => $oDatabaseObject,
                         );
                     }
 
@@ -511,7 +556,109 @@ class DBRepository
 
         }
 
+        // some useful information about forwarding
+        $aResult['stat'] = array(
+            'can_be_forwarded' => array(),
+            'cannot_be_forwarded' => array(),
+        );
+
+        // collect tables known to be potentially forwarded
+        $aTablesToBeForwarded = array();
+
+        foreach ($aResult['schemas'] as $aSchema) {
+            foreach ($aSchema['objects'] as $aObject) {
+                if ($aObject['can_be_forwarded']) {
+                    $aTablesToBeForwarded []= $aObject['database_object'];
+                }
+            }
+        }
+
+        // topological sort of references graph
+        $aOrder = self::orderByReferences($aTablesToBeForwarded);
+        // it will returns ordered list of object that can be ordered :)
+
+        // remove objects from response
+        foreach ($aResult['schemas'] as $sSchemaKey => $aSchema) {
+            foreach ($aSchema['objects'] as $sObjectKey => & $aObject) {
+                // there is no need to put this object in response
+                unset($aResult['schemas'][$sSchemaKey]['objects'][$sObjectKey]['database_object']);
+
+                if ($aSchema['object_index'] != 'tables') {
+                    // skip seeds, functions, types
+                    continue;
+                }
+
+                // qualified table name (schema_name.tables.table_name)
+                $sTable = (string)$aObject['database_object'];
+
+                // alias for object in response
+                $aObject = & $aResult['schemas'][$sSchemaKey]['objects'][$sObjectKey];
+
+                // can be forwarded?
+                if (isset($aOrder[$sTable])) {
+                    // yep
+                    $aObject['forward_order'] = $aOrder[$sTable];
+                    $aObject['manual_deployment_required'] = null;
+                    // for panel
+                    $aResult['stat']['can_be_forwarded'][$aOrder[$sTable]]= $sTable;
+                } else {
+                    // nope
+                    $aObject['can_be_forwarded'] = null;
+                    $aResult['stat']['cannot_be_forwarded'] []= $sTable;
+                }
+            }
+        }
+
+        // sorting by order to show it in information panel
+        ksort($aResult['stat']['can_be_forwarded']);
+        // remove keys
+        $aResult['stat']['can_be_forwarded'] = array_values($aResult['stat']['can_be_forwarded']);
+
+        //
         return $aResult;
+    }
+
+    /**
+     * Returns ordered list of tables to forward, starting from tables without references at all
+     *
+     * @param array tables to be forwarded
+     *
+     * @return array ordered list
+     */
+
+    private function orderByReferences($aTablesToBeForwarded) {
+        // result
+        $aOrder = array();
+
+        // forward order
+        $iOrder = 0;
+
+        do {
+            // count of references removed
+            $iCount = 0;
+
+            // foreach table
+            for($i = 0; $i < sizeof($aTablesToBeForwarded); $i ++) {
+                $oTable = $aTablesToBeForwarded[$i];
+
+                // does table have references?
+                if (! $oTable->getDiff()->getReferences()) {
+                    // remember it
+                    $sTable = (string)$oTable;
+                    if (! isset($aOrder[$sTable])) {
+                        $aOrder[$sTable] = ++ $iOrder;
+                    }
+                    // remove all references on this table
+                    for($j = 0; $j < sizeof($aTablesToBeForwarded); $j ++) {
+                        $oTableWithReference = $aTablesToBeForwarded[$j];
+                        $iCountRemoved = $oTableWithReference->getDiff()->removeReference($oTable);
+                        $iCount = max($iCount, $iCountRemoved);
+                    }
+                }
+            }
+        } while ($iCount); // while there is reference removed
+
+        return $aOrder;
     }
 
     /**
@@ -572,7 +719,7 @@ class DBRepository
      * @return string filename
      */
 
-    private static function makeTemporaryFile($sContent)
+    public static function makeTemporaryFile($sContent)
     {
         $sFileName = tempnam(sys_get_temp_dir(), 'pgdeployer');
         file_put_contents($sFileName, $sContent);
@@ -664,8 +811,11 @@ class DBRepository
      * @return string hash
      */
 
-    private static function getFileContent($sFilename)
+    public static function getFileContent($sFilename)
     {
+        if (! file_exists($sFilename)) {
+            return '';
+        }
         return file_get_contents($sFilename);
     }
 
@@ -705,7 +855,7 @@ class DBRepository
      * @return string absolute filename
      */
 
-    private static function getAbsoluteFileName($sRelativeFileName)
+    public static function getAbsoluteFileName($sRelativeFileName)
     {
         return self::$sDirectory . self::$sSchemasPath . $sRelativeFileName;
     }
@@ -720,7 +870,7 @@ class DBRepository
      * @return string absolute filename
      */
 
-    private function makeRelativeFileName($sSchemaName, $sObjectIndex, $sObjectName) {
+    public function makeRelativeFileName($sSchemaName, $sObjectIndex, $sObjectName) {
         return $sSchemaName . "/" . $sObjectIndex . "/" . $sObjectName . ".sql";
     }
 
@@ -745,13 +895,19 @@ class DBRepository
         // to remember we need imitation
         DatabaseObject::$bImitate = $bImitate;
 
-        $aTables = array();
+        $aForwardedTables = array();
+        $aNonForwardedTables = array();
         $aTypes = array();
         $aFunctions = array();
         $aSeeds = array();
 
         // for each object
-        foreach ($aObjects as $sRelativeFileName) {
+        foreach ($aObjects as $aObjectInfo) {
+            //
+            $sRelativeFileName = $aObjectInfo['object_name'];
+            $bForwarded = $aObjectInfo['forwarded'];
+            $iForwardOrder = $aObjectInfo['forward_order'];
+
             // exploding by / to get object data
             $aParts = explode("/", $sRelativeFileName);
 
@@ -762,7 +918,7 @@ class DBRepository
             $sRelativeFileName = self::makeRelativeFileName($sSchemaName, $sObjectIndex, $sBaseName);
 
             // make object
-            $aObject = DatabaseObject::make(
+            $oObject = DatabaseObject::make(
                 self::$sDatabase,
                 $sSchemaName,
                 $sObjectIndex,
@@ -772,23 +928,53 @@ class DBRepository
 
             // sorting into 4 types
             if ($sObjectIndex == 'tables') {
-                $aTables []= $aObject;
+                if ($bForwarded) {
+                    // creating diff for forwarding
+                    $oObject->createDiff();
+                    //
+                    $aForwardedTables[$iForwardOrder] = $oObject;
+                } else {
+                    //
+                    $aNonForwardedTables []= $oObject;
+                }
             } else if ($sObjectIndex == 'functions') {
-                $aFunctions []= $aObject;
+                $aFunctions []= $oObject;
             } else if ($sObjectIndex == 'types') {
-                $aTypes []= $aObject;
+                $aTypes []= $oObject;
             } else if ($sObjectIndex == 'seeds') {
-                $aSeeds []= $aObject;
+                $aSeeds []= $oObject;
             }
         }
+
+        //
+        ksort($aForwardedTables);
 
         // the heart of deployer - single transaction
         try {
             self::$oDB->startTransaction();
 
+            // forwarding tables - deploying diff
+            foreach ($aForwardedTables as $iForwardOrder => $aTable) {
+                $aTable->forward();
+                $aTable->upsertMigration();
+            }
+
+            // deploying tables (imitation)
+            // only upsert migration, user deploys table by himself
+            foreach ($aNonForwardedTables as $aTable) {
+                $aTable->applyObject();
+                $aTable->upsertMigration();
+            }
+
+            // deploying seeds
+            foreach ($aSeeds as $aSeed) {
+                $aSeed->applyObject();
+                $aSeed->upsertMigration();
+            }
+
             $aDroppedFunctions = array();
 
-            // let's start tith types
+            // continue with types
             foreach ($aTypes as $aType) {
                 $aDroppedFunctions = $aType->applyObject();
                 $aType->upsertMigration();
@@ -827,18 +1013,6 @@ class DBRepository
             foreach ($aFunctions as $aFunction) {
                 $aFunction->applyObject();
                 $aFunction->upsertMigration();
-            }
-
-            // "deploying" tables
-            foreach ($aTables as $aTable) {
-                $aTable->applyObject();
-                $aTable->upsertMigration();
-            }
-
-            // deploying seeds
-            foreach ($aSeeds as $aSeed) {
-                $aSeed->applyObject();
-                $aSeed->upsertMigration();
             }
 
             //

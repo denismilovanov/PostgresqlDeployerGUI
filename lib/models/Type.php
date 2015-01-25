@@ -108,6 +108,21 @@ class Type extends DatabaseObject
                 self::$aMigrations[$this->sSchemaName][$this->sObjectIndex][$this->sObjectName] != $sCurrentHash;
     }
 
+    public function isDescribable ()
+    {
+        return true;
+    }
+
+    public function isDefinable ()
+    {
+        return true;
+    }
+
+    public function isDroppable ()
+    {
+        return false;
+    }
+
     public function define()
     {
         $aColumns = self::$oDB->selectColumn("

@@ -1,8 +1,12 @@
 <?php
 
+// for external `diff`
+use Symfony\Component\Process\ProcessBuilder;
+
 abstract class DatabaseObject
 {
     public $sDatabaseName, $sSchemaName, $sObjectIndex, $sObjectName, $sObjectContent, $sObjectContentHash;
+    protected $oDiff;
 
     public static $oDB;
     public static $aMigrations;
@@ -13,6 +17,14 @@ abstract class DatabaseObject
     public function __toString()
     {
         return $this->sSchemaName . '/' . $this->sObjectIndex . '/' . $this->sObjectName;
+    }
+
+    public function compare(DatabaseObject $oAnotherObject)
+    {
+        return  $this->sDatabaseName == $oAnotherObject->sDatabaseName and
+                $this->sSchemaName == $oAnotherObject->sSchemaName and
+                $this->sObjectIndex == $oAnotherObject->sObjectIndex and
+                $this->sObjectName == $oAnotherObject->sObjectName;
     }
 
     private static function getObjectsIndexes()
@@ -106,6 +118,16 @@ abstract class DatabaseObject
         );
     }
 
+    public function createDiff()
+    {
+        return $this->oDiff = Diff::getDiff($this);
+    }
+
+    public function getDiff()
+    {
+        return $this->oDiff;
+    }
+
     abstract public function hasChanged($sCurrentHash);
 
     abstract public function signatureChanged();
@@ -121,6 +143,12 @@ abstract class DatabaseObject
     abstract public function describe();
 
     abstract public function drop();
+
+    abstract public function isDescribable();
+
+    abstract public function isDefinable();
+
+    abstract public function isDroppable();
 
 }
 
