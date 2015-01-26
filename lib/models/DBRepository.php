@@ -626,7 +626,7 @@ class DBRepository
      * @return array ordered list
      */
 
-    private function orderByReferences($aTablesToBeForwarded) {
+    private static function orderByReferences($aTablesToBeForwarded) {
         // result
         $aOrder = array();
 
@@ -870,7 +870,7 @@ class DBRepository
      * @return string absolute filename
      */
 
-    public function makeRelativeFileName($sSchemaName, $sObjectIndex, $sObjectName) {
+    public static function makeRelativeFileName($sSchemaName, $sObjectIndex, $sObjectName) {
         return $sSchemaName . "/" . $sObjectIndex . "/" . $sObjectName . ".sql";
     }
 

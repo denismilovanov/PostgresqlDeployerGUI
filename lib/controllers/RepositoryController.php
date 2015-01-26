@@ -27,12 +27,13 @@ class RepositoryController {
         if (! $aDatabases) {
             return $app->redirect('/error/no_databases/');
         }
-        $aDatabase = array_shift(array_values($aDatabases));
+        $aDatabases = array_values($aDatabases);
+        $aDatabase = array_shift($aDatabases);
         return $app->redirect('/' . $aDatabase['index'] . '/');
     }
 
     // before all controllers
-    public function useDatabase(Request $request, Application $app) {
+    public static function useDatabase(Request $request, Application $app) {
         // given database
         $sDatabaseName = $app['request']->get('database_name');
 
