@@ -32,8 +32,17 @@ PostgreSQLDeployerGUI works with 4 database objects types:
 * types (PostgreSQL user types),
 * functions (PostgreSQL stored procedures).
 
-Tables DDL's (`CREATE TABLE`, `CREATE INDEX CONCURRENTLY`, `ALTER TABLE`) are committed into git and deployed always in manual mode.
-Interface just shows you table difference between current schema in git and your actual schema.
+Tables DDL's (`CREATE TABLE`, `CREATE INDEX CONCURRENTLY`, `ALTER TABLE`) are committed into git and can be
+deployed automatically if 2 conditions are satisfied:
+* there is no significant `deletions` lines in commit,
+* there are no cyclic table references in `additions` lines among commits.
+
+If commit includes `deletions` it means that you have to apply corresponding changes by hands: system is not smart enough
+to produce 'revert' statements (`ALTER TABLE RENAME COLUMN`, `ALTER TABLE DROP COLUMN`, `DROP INDEX`, etc).
+
+If commits include cyclic references system also requires you to do manual deployment even if statements can be ordered the way avoiding cycles.
+
+Other cases are marked as 'Can be forwarded #N', it means that statements can be deployed in automatic mode.
 
 Seeds are deployed automatically via `DELETE - INSERT`.
 
