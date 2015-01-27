@@ -479,6 +479,7 @@ class DBRepository
                             $iInsertions = $oDiff->getInsertionsCount();
                             $iDeletions = $oDiff->getDeletionsCount();
                         } else {
+                            $oDiff = null;
                             $iInsertions = $iDeletions = null;
                         }
 
@@ -505,12 +506,16 @@ class DBRepository
                         }
 
                         // work with references list to show it in panel
-                        $ReferencesRaw = $oDiff->getReferences();
                         $aReferences = array();
-                        foreach ($ReferencesRaw as $oReference) {
-                            $aReferences []= array(
-                                'reference_name' => (string)$oReference,
-                            );
+
+                        if ($oDiff) { // only if $oDiff exists
+                            $ReferencesRaw = $oDiff->getReferences();
+
+                            foreach ($ReferencesRaw as $oReference) {
+                                $aReferences []= array(
+                                    'reference_name' => (string)$oReference,
+                                );
+                            }
                         }
 
                         // save data to be shown at diff panel
@@ -535,10 +540,13 @@ class DBRepository
                             'new_object' => $bIsNew,
                             'not_in_git' => $bNotInGit,
 
-                            // available operations
+                            // available operations:
+                            // definition (CREATE SMTH) is useful only for non-git objects
                             'define' => $bNotInGit and $oDatabaseObject->isDefinable(),
+                            // drop too
                             'drop' => $bNotInGit and $oDatabaseObject->isDroppable(),
-                            'describe' => $bInGit and ! $bIsNew and $oDatabaseObject->isDescribable(),
+                            // description (\dt, describe type, \sf) is useful for all existing objects
+                            'describe' => ! $bIsNew and $oDatabaseObject->isDescribable(),
 
                             // save object to work with collection of them to find references
                             'database_object' => $oDatabaseObject,

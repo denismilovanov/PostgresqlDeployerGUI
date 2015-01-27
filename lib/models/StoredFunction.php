@@ -106,7 +106,7 @@ class StoredFunction extends DatabaseObject
 
     public function isDescribable ()
     {
-        return false;
+        return true;
     }
 
     public function isDefinable ()
@@ -116,7 +116,7 @@ class StoredFunction extends DatabaseObject
 
     public function isDroppable ()
     {
-        return false;
+        return true;
     }
 
     public function define()
@@ -129,15 +129,34 @@ class StoredFunction extends DatabaseObject
 
     public function describe()
     {
-        $aDefinition = $this->define();
+        $sError = '';
+        $sOutput = DBRepository::callExternalTool(
+            'psql',
+            array('-c\sf ' . $this->sSchemaName . '.' . $this->sObjectName),
+            $sError
+        );
+
         return array(
-            'description' => $aDefinition['definition'],
-            'error' => '',
+            'description' => $sOutput,
+            'error' => $sError,
         );
     }
 
     public function drop()
     {
+        if ($this->objectExists()) {
+            // single transaction
+            // compare with applyObject (where transaction is already open)
+            self::$oDB->t()->query("
+                SELECT postgresql_deployer.drop_all_functions_by_name(?w, ?w);
+            ",
+                $this->sObjectName,
+                $this->sSchemaName
+            );
+        } else {
+            throw new Exception("There is no function.");
+        }
+
         return true;
     }
 
