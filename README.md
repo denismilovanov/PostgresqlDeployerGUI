@@ -95,6 +95,13 @@ Example:
                     "db_name": "db1"
                 },
                 "git_root": "/home/user/work/project/db1_git_root/"
+		
+		,"schemas_path": "dir1/dir2/schemas/" #optinal, 'schemas/' by default
+
+		,"settings": {
+                    #optional settings overloading global
+                    #see settings.json
+                }
             },
             "db2": {
                 "index": "db2",
@@ -123,7 +130,8 @@ Example:
     {
         "settings": {
             "not_in_git": {
-                "active": true
+                "active": true,
+                "exclude_regexp": "(public\\.not_under_git_table)|(main\\.table_number_\\d+)"
             },
             "reload_and_apply": {
                 "active": true

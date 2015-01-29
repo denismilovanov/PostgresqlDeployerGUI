@@ -26,7 +26,7 @@ ErrorHandler::register();
 DBRepository::readDatabases();
 
 // read config/settings.json
-DBRepository::readSettings();
+DBRepository::readGlobalSettings();
 
 $app = new Silex\Application();
 

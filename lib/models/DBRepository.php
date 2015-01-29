@@ -35,7 +35,7 @@ class DBRepository
      * @return none
      */
 
-    public static function readSettings()
+    public static function readGlobalSettings()
     {
         $sFileName = './../lib/config/settings.json';
 
@@ -228,27 +228,29 @@ class DBRepository
             throw new Exception("There is no database '$sDatabaseIndex'.");
         }
 
+        $aDatabase = $aDatabases[$sDatabaseIndex];
+
         // no git root
-        if (! isset($aDatabases[$sDatabaseIndex]['git_root'])) {
+        if (! isset($aDatabase['git_root'])) {
             throw new Exception("There is no git_root '$sDatabaseIndex'.");
         }
 
         // no access credentials
-        if (! isset($aDatabases[$sDatabaseIndex]['credentials'])) {
+        if (! isset($aDatabase['credentials'])) {
             throw new Exception("There is no credentials for '$sDatabaseIndex'.");
         }
 
         // schemas_path can be overriden
-        if (isset($aDatabases[$sDatabaseIndex]['schemas_path'])) {
-            if (! preg_match("~/$~uixs", $aDatabases[$sDatabaseIndex]['schemas_path'])) {
+        if (isset($aDatabase['schemas_path'])) {
+            if (! preg_match("~/$~uixs", $aDatabase['schemas_path'])) {
                 // add slash to the end
-                $aDatabases[$sDatabaseIndex]['schemas_path'] .= '/';
+                $aDatabase['schemas_path'] .= '/';
             }
-            self::$sSchemasPath = $aDatabases[$sDatabaseIndex]['schemas_path'];
+            self::$sSchemasPath = $aDatabase['schemas_path'];
         }
 
         // make connection
-        self::$aDBCredentials = $aDatabases[$sDatabaseIndex]['credentials'];
+        self::$aDBCredentials = $aDatabase['credentials'];
         self::$oDB = new LibPostgresDriver(self::$aDBCredentials);
         // check connection
         $sVersion = self::$oDB->selectField("SHOW server_version_num;");
@@ -256,7 +258,7 @@ class DBRepository
         // build version
         self::$aDBCredentials['version'] = floor($sVersion /  10000) . "." . floor($sVersion / 100) % 10;
         // to show in header
-        $aDatabases[$sDatabaseIndex]['version'] = self::$aDBCredentials['version'];
+        $aDatabase['version'] = self::$aDBCredentials['version'];
 
         // share connections
         User::$oDB = self::$oDB;
@@ -264,11 +266,11 @@ class DBRepository
         DatabaseObject::$oDB = self::$oDB;
 
         // make git
-        if (! preg_match("~/$~uixs", $aDatabases[$sDatabaseIndex]['git_root'])) {
+        if (! preg_match("~/$~uixs", $aDatabase['git_root'])) {
             // add slash to the end
-            $aDatabases[$sDatabaseIndex]['git_root'] .= '/';
+            $aDatabase['git_root'] .= '/';
         }
-        self::$oGit = new Repository($aDatabases[$sDatabaseIndex]['git_root']);
+        self::$oGit = new Repository($aDatabase['git_root']);
 
         // branches
         self::$aBranches = array();
@@ -281,15 +283,23 @@ class DBRepository
 
         // save params
         self::$sDatabase = $sDatabaseIndex;
-        self::$sDirectory = $aDatabases[$sDatabaseIndex]['git_root'];
+        self::$sDirectory = $aDatabase['git_root'];
 
         // check if directory exists
         if (! file_exists($sWorkingDir = self::$sDirectory . self::$sSchemasPath)) {
             throw new Exception("There is no directory '$sWorkingDir'.");
         }
 
+        // merge local settings with global settings
+        if (isset($aDatabase['settings'])) {
+            $aSettings = $aDatabase['settings'];
+            if (is_array($aSettings)) {
+                self::$aSettings = array_replace_recursive(self::$aSettings, $aSettings);
+            }
+        }
+
         // return
-        return $aDatabases[$sDatabaseIndex];
+        return $aDatabase;
     }
 
     /**
@@ -422,6 +432,10 @@ class DBRepository
 
         //
         $bShowObjectsNotInGit = self::getSettingValue('not_in_git.active');
+        $sExcludeRegexpShowObjectsNotInGit = '';
+        if ($bShowObjectsNotInGit) {
+            $sExcludeRegexpShowObjectsNotInGit = self::getSettingValue('not_in_git.exclude_regexp', '');
+        }
 
         // for each schema
         foreach ($aSchemas as $sSchema) {
@@ -444,6 +458,17 @@ class DBRepository
                     // ALL objects in database
                     $aObjects = Database::getObjectsAsVirtualFiles($sSchema, $sObjectIndex);
                     // hash == ''
+
+                    if ($sExcludeRegexpShowObjectsNotInGit) {
+                        // filter objects using not_in_git.exclude_regexp
+                        foreach ($aObjects as $sKey => $aObjectData) {
+                            $sObjectNameWithSchema = $sSchema . '.' . $sKey;
+                            if (preg_match('~' . $sExcludeRegexpShowObjectsNotInGit . '~uixs', $sObjectNameWithSchema)) {
+                                // do not show as NOT IN GIT
+                                unset($aObjects[$sKey]);
+                            }
+                        }
+                    }
 
                     // objects not under git will still have hash = ''
                     $aFiles = array_merge($aObjects, $aFiles);
