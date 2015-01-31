@@ -19,8 +19,10 @@ require_once '../lib/models/Diff.php';
 require_once '../lib/controllers/RepositoryController.php';
 
 use Symfony\Component\Debug\ErrorHandler;
+use Symfony\Component\Debug\ExceptionHandler;
 
 ErrorHandler::register();
+ExceptionHandler::register();
 
 // read config/databases.json
 DBRepository::readDatabases();
