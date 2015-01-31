@@ -634,7 +634,7 @@ class DBRepository
                     $aObject['manual_deployment_required'] = null;
                     // for panel
                     $aResult['stat']['can_be_forwarded'][$aOrder[$sTable]]= $sTable;
-                } else {
+                } else if (! $aObject['not_in_git']) {
                     // nope
                     $aObject['can_be_forwarded'] = null;
                     $aResult['stat']['cannot_be_forwarded'] []= $sTable;
