@@ -118,7 +118,7 @@ class Table extends DatabaseObject
     {
         if ($this->objectExists()) {
             self::$oDB->t()->query("
-                DROP TABLE ?.?
+                DROP TABLE ?.? CASCADE;
             ",
                 // this variables were checked in objectExists so we can drop nothing but pointed table
                 $this->sSchemaName,

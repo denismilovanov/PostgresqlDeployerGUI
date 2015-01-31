@@ -120,7 +120,7 @@ class Type extends DatabaseObject
 
     public function isDroppable ()
     {
-        return false;
+        return true;
     }
 
     public function define()
@@ -173,6 +173,17 @@ class Type extends DatabaseObject
 
     public function drop()
     {
+        if ($this->objectExists()) {
+            self::$oDB->t()->query("
+                DROP TYPE ?.? CASCADE;
+            ",
+                $this->sSchemaName,
+                $this->sObjectName
+            );
+        } else {
+            throw new Exception("There is no type.");
+        }
+
         return true;
     }
 
