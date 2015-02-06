@@ -1,6 +1,6 @@
 <?php
 
-define("VERSION", "0.0.3");
+define("VERSION", "0.1");
 
 require_once '../lib/vendor/autoload.php';
 
