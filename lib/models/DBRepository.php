@@ -365,7 +365,29 @@ class DBRepository
 
     private static function getObjectsIndexes()
     {
-        return array('tables', 'types', 'seeds', 'functions');
+        return self::$oDB->selectColumn("
+            SELECT index
+                FROM postgresql_deployer.migrations_objects
+                ORDER BY rank ASC;
+        ");
+    }
+
+    /**
+     * Gets allowed forwardable database object types
+     *
+     * @param none
+     *
+     * @return array types
+     */
+
+    private static function getForwardableObjectsIndexes()
+    {
+        return self::$oDB->selectColumn("
+            SELECT index
+                FROM postgresql_deployer.migrations_objects
+                WHERE (params->>'is_forwardable')::boolean
+                ORDER BY rank ASC;
+        ");
     }
 
     /**
@@ -510,8 +532,8 @@ class DBRepository
 
                         // get diff (insertions and deletions)
                         $bCanBeForwarded = null;
-                        if ($bInGit and $oDatabaseObject instanceof Table) {
-                            $bCanBeForwarded = $oDiff->canBeForwarded();
+                        if ($bInGit and $oDatabaseObject instanceof IForwardable) {
+                            $bCanBeForwarded = $oDatabaseObject->canBeForwarded();
                         }
 
                         // we should show dependencies
@@ -546,6 +568,7 @@ class DBRepository
                         // save data to be shown at diff panel
                         $aSchema['objects'] []= array(
                             'object_name' => $sObjectNameName,
+                            'object_index' => $sObjectIndex,
 
                             // dependencies
                             'dependencies' => $aDependencies,
@@ -558,7 +581,7 @@ class DBRepository
                             'return_type_changed' => $bReturnTypeChanged,
 
                             // git info
-                            'manual_deployment_required' => (($oDatabaseObject instanceof Table) and $bInGit) ? true : null,
+                            'manual_deployment_required' => (($oDatabaseObject instanceof IForwardable) and $bInGit) ? true : null,
                             'can_be_forwarded' => $bCanBeForwarded,
                             'insertions' => $iInsertions,
                             'deletions' => $iDeletions,
@@ -590,24 +613,27 @@ class DBRepository
         }
 
         // some useful information about forwarding
-        $aResult['stat'] = array(
-            'can_be_forwarded' => array(),
-            'cannot_be_forwarded' => array(),
-        );
+        $aResult['stat'] = array();
 
-        // collect tables known to be potentially forwarded
-        $aTablesToBeForwarded = array();
+        foreach (self::getForwardableObjectsIndexes() as $sObjectIndex) {
+            $aResult['stat']['can_be_forwarded'][$sObjectIndex] = array();
+            $aResult['stat']['cannot_be_forwarded'][$sObjectIndex] = array();
 
+            // collect objects known to be potentially forwarded
+            $aObjectsToBeForwarded[$sObjectIndex] = array();
+        }
+
+        //
         foreach ($aResult['schemas'] as $aSchema) {
             foreach ($aSchema['objects'] as $aObject) {
                 if ($aObject['can_be_forwarded']) {
-                    $aTablesToBeForwarded []= $aObject['database_object'];
+                    $aObjectsToBeForwarded[$aObject['object_index']] []= $aObject['database_object'];
                 }
             }
         }
 
         // topological sort of references graph
-        $aOrder = self::orderByReferences($aTablesToBeForwarded);
+        $aTablesOrder = self::orderByReferences($aObjectsToBeForwarded['tables']);
         // it will returns ordered list of object that can be ordered :)
 
         // remove objects from response
@@ -616,36 +642,71 @@ class DBRepository
                 // there is no need to put this object in response
                 unset($aResult['schemas'][$sSchemaKey]['objects'][$sObjectKey]['database_object']);
 
-                if ($aSchema['object_index'] != 'tables') {
+                // qualified object name (e.g. schema_name.tables.table_name)
+                $sQualifiedObjectName = (string)$aObject['database_object'];
+
+                // alias for object in response
+                $aObject = & $aResult['schemas'][$sSchemaKey]['objects'][$sObjectKey];
+                $sObjectIndex = $aSchema['object_index'];
+
+                if (! in_array($sObjectIndex, self::getForwardableObjectsIndexes())) {
                     // skip seeds, functions, types
                     continue;
                 }
 
-                // qualified table name (schema_name.tables.table_name)
-                $sTable = (string)$aObject['database_object'];
+                if ($aObject['not_in_git']) {
+                    // skip objects not in git
+                    continue;
+                }
 
-                // alias for object in response
-                $aObject = & $aResult['schemas'][$sSchemaKey]['objects'][$sObjectKey];
+                if (! $aObject['can_be_forwarded']) {
+                    // skip object which cannot be forwarded
+                    continue;
+                }
 
-                // can be forwarded?
-                if (isset($aOrder[$sTable])) {
+                // now let's figure out if we can forward table?
+
+                // did we get order after topological sort
+                $bIsOrderSet = $sObjectIndex == 'tables'
+                                ? isset($aTablesOrder[$sQualifiedObjectName]) // only for tables
+                                : true; // order for sequences/queries will be set to 0, they are ordered by name (see apply())
+
+                $iOrder = ($bIsOrderSet and $sObjectIndex == 'tables')
+                                ? $aTablesOrder[$sQualifiedObjectName]
+                                : 0;
+
+                $sArrayIndex = ''; // can_be_forwarded or cannot_be_forwarded
+
+                // can be forwarded with defined order?
+                if ($bIsOrderSet) {
                     // yep
-                    $aObject['forward_order'] = $aOrder[$sTable];
+                    $aObject['forward_order'] = $iOrder;
                     $aObject['manual_deployment_required'] = null;
-                    // for panel
-                    $aResult['stat']['can_be_forwarded'][$aOrder[$sTable]]= $sTable;
-                } else if (! $aObject['not_in_git']) {
+                    $sArrayIndex = 'can_be_forwarded';
+                } else {
                     // nope
                     $aObject['can_be_forwarded'] = null;
-                    $aResult['stat']['cannot_be_forwarded'] []= $sTable;
+                    $aResult['stat']['cannot_be_forwarded']['tables'] []= $sQualifiedObjectName;
+                    $sArrayIndex = 'cannot_be_forwarded';
+                }
+
+                // for messages in panel (list of forwarding objects)
+                if ($sObjectIndex == 'tables') {
+                    $aResult['stat'][$sArrayIndex][$sObjectIndex][$iOrder]= $sQualifiedObjectName;
+                } else {
+                    // the difference is in indexation
+                    $aResult['stat'][$sArrayIndex][$sObjectIndex] []= $sQualifiedObjectName;
                 }
             }
         }
 
         // sorting by order to show it in information panel
-        ksort($aResult['stat']['can_be_forwarded']);
+        ksort($aResult['stat']['can_be_forwarded']['tables']);
+        sort($aResult['stat']['can_be_forwarded']['sequences']);
+        natsort($aResult['stat']['can_be_forwarded']['queries_before']);
+        natsort($aResult['stat']['can_be_forwarded']['queries_after']);
         // remove keys
-        $aResult['stat']['can_be_forwarded'] = array_values($aResult['stat']['can_be_forwarded']);
+        $aResult['stat']['can_be_forwarded']['tables'] = array_values($aResult['stat']['can_be_forwarded']['tables']);
 
         //
         return $aResult;
@@ -661,7 +722,7 @@ class DBRepository
 
     private static function orderByReferences($aTablesToBeForwarded) {
         // result
-        $aOrder = array();
+        $aTablesOrder = array();
 
         // forward order
         $iOrder = 0;
@@ -678,8 +739,8 @@ class DBRepository
                 if (! $oTable->getDiff()->getReferences()) {
                     // remember it
                     $sTable = (string)$oTable;
-                    if (! isset($aOrder[$sTable])) {
-                        $aOrder[$sTable] = ++ $iOrder;
+                    if (! isset($aTablesOrder[$sTable])) {
+                        $aTablesOrder[$sTable] = ++ $iOrder;
                     }
                     // remove all references on this table
                     for($j = 0; $j < sizeof($aTablesToBeForwarded); $j ++) {
@@ -691,7 +752,7 @@ class DBRepository
             }
         } while ($iCount); // while there is reference removed
 
-        return $aOrder;
+        return $aTablesOrder;
     }
 
     /**
@@ -928,11 +989,18 @@ class DBRepository
         // to remember we need imitation
         DatabaseObject::$bImitate = $bImitate;
 
-        $aForwardedTables = array();
-        $aNonForwardedTables = array();
+        // packets for objects
+        $aForwarded = array();
+        $aNonForwarded = array();
         $aTypes = array();
         $aFunctions = array();
         $aSeeds = array();
+
+        //
+        foreach (self::getForwardableObjectsIndexes() as $sObjectIndex) {
+            $aForwarded[$sObjectIndex] = array();
+            $aNonForwarded[$sObjectIndex] = array();
+        }
 
         // for each object
         foreach ($aObjects as $aObjectInfo) {
@@ -940,6 +1008,9 @@ class DBRepository
             $sRelativeFileName = $aObjectInfo['object_name'];
             $bForwarded = $aObjectInfo['forwarded'];
             $iForwardOrder = $aObjectInfo['forward_order'];
+            if (! $iForwardOrder) {
+                $iForwardOrder = 0;
+            }
 
             // exploding by / to get object data
             $aParts = explode("/", $sRelativeFileName);
@@ -960,15 +1031,19 @@ class DBRepository
             );
 
             // sorting into 4 types
-            if ($sObjectIndex == 'tables') {
+            if ($oObject instanceof IForwardable) {
                 if ($bForwarded) {
                     // creating diff for forwarding
                     $oObject->createDiff();
                     //
-                    $aForwardedTables[$iForwardOrder] = $oObject;
+                    if ($iForwardOrder) {
+                        $aForwarded[$sObjectIndex][$iForwardOrder] = $oObject;
+                    } else {
+                        $aForwarded[$sObjectIndex][(string)$oObject]= $oObject;
+                    }
                 } else {
                     //
-                    $aNonForwardedTables []= $oObject;
+                    $aNonForwarded[$sObjectIndex][(string)$oObject] = $oObject;
                 }
             } else if ($sObjectIndex == 'functions') {
                 $aFunctions []= $oObject;
@@ -979,24 +1054,33 @@ class DBRepository
             }
         }
 
-        //
-        ksort($aForwardedTables);
+        // sort by names in key, order is 0
+        ksort($aForwarded['queries_before']);
+        ksort($aForwarded['queries_after']);
+        ksort($aForwarded['sequences']);
+
+        // sort by topological order in key
+        ksort($aForwarded['tables']);
 
         // the heart of deployer - single transaction
         try {
             self::$oDB->startTransaction();
 
-            // forwarding tables - deploying diff
-            foreach ($aForwardedTables as $iForwardOrder => $aTable) {
-                $aTable->forward();
-                $aTable->upsertMigration();
-            }
+            foreach (array('queries_before', 'sequences', 'tables') as $sForwardableIndex) {
 
-            // deploying tables (imitation)
-            // only upsert migration, user deploys table by himself
-            foreach ($aNonForwardedTables as $aTable) {
-                $aTable->applyObject();
-                $aTable->upsertMigration();
+                // forwarding queries/sequences/tables - deploying diff
+                foreach ($aForwarded[$sForwardableIndex] as $iForwardOrder => $oForwardableObject) {
+                    $oForwardableObject->forward();
+                    $oForwardableObject->upsertMigration();
+                }
+
+                // deploying queries/sequences/tables (imitation)
+                // only upsert migration, user deploys table by himself
+                foreach ($aNonForwarded[$sForwardableIndex] as $oNonForwardableObject) {
+                    $oNonForwardableObject->applyObject();
+                    $oNonForwardableObject->upsertMigration();
+                }
+
             }
 
             // deploying seeds
@@ -1053,6 +1137,24 @@ class DBRepository
                 // let's check stored functions
                 Database::checkAllStoredFunctionsByPlpgsqlCheck();
                 // says rollback and throws exception if check fails
+            }
+
+            //
+            foreach (array('queries_after') as $sForwardableIndex) {
+
+                // forwarding queries - deploying diff
+                foreach ($aForwarded[$sForwardableIndex] as $iForwardOrder => $oForwardableObject) {
+                    $oForwardableObject->forward();
+                    $oForwardableObject->upsertMigration();
+                }
+
+                // deploying queries (imitation)
+                // only upsert migration, user deploys query by himself
+                foreach ($aNonForwarded[$sForwardableIndex] as $oNonForwardableObject) {
+                    $oNonForwardableObject->applyObject();
+                    $oNonForwardableObject->upsertMigration();
+                }
+
             }
 
             // say commit

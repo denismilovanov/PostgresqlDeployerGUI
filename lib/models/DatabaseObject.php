@@ -27,11 +27,6 @@ abstract class DatabaseObject
                 $this->sObjectName == $oAnotherObject->sObjectName;
     }
 
-    private static function getObjectsIndexes()
-    {
-        return array('tables', 'types', 'seeds', 'functions');
-    }
-
     public static function readMigrations()
     {
         self::$aMigrations = self::$oDB->select3IndexedColumn("
@@ -66,6 +61,9 @@ abstract class DatabaseObject
             'seeds' => 'Seed',
             'types' => 'Type',
             'functions' => 'StoredFunction',
+            'sequences' => 'Sequence',
+            'queries_before' => 'QueryBefore',
+            'queries_after' => 'QueryAfter',
         );
 
         $aObject = new $aClassesNames[$sObjectIndex];

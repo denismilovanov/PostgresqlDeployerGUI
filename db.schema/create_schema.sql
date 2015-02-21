@@ -26,14 +26,23 @@ DROP FUNCTION __temp1();
 
 CREATE TABLE IF NOT EXISTS postgresql_deployer.migrations_objects (
     id integer PRIMARY KEY,
-    index varchar(32) NOT NULL
+    index varchar(32) NOT NULL,
+    rank integer NOT NULL,
+    params json NOT NULL
 );
 
 DELETE FROM postgresql_deployer.migrations_objects;
 
 -- are:
 INSERT INTO postgresql_deployer.migrations_objects
-    VALUES (1, 'tables'), (2, 'seeds'), (3, 'types'), (4, 'functions');
+    VALUES
+        (1, 'tables', 3, '{"is_forwardable":true}'),
+        (2, 'seeds', 4, '{"is_forwardable":false}'),
+        (3, 'types', 5, '{"is_forwardable":false}'),
+        (4, 'functions', 6, '{"is_forwardable":false}'),
+        (5, 'sequences', 2, '{"is_forwardable":true}'),
+        (6, 'queries_before', 1, '{"is_forwardable":true}'),
+        (7, 'queries_after', 100, '{"is_forwardable":true}');
 
 ----------------------------------------------------------------------------
 -- actual information about objects deployed

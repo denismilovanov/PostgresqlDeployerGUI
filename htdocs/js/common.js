@@ -82,15 +82,22 @@ Git = {
                         if (show_alert) {
                             // show current hash or branch
                             Messager.alert(1, 'Checked out to ' + hash);
-                            // show tables
-                            var cbf = data['stat']['can_be_forwarded'];
-                            if (cbf.length) {
-                                Messager.alert(1, 'Can be forwarded: ' + cbf.join(' -> '));
-                            }
-                            //
-                            var cnbf = data['stat']['cannot_be_forwarded'];
-                            if (cnbf.length) {
-                                Messager.alert(1, 'Cannot be forwarded: ' + cnbf.join(' -> '));
+
+                            var forwardable_types = ['queries_before', 'sequences', 'tables', 'queries_after'];
+
+                            for (var forwardable_type_key in forwardable_types) {
+                                var forwardable_type = forwardable_types[forwardable_type_key];
+
+                                //
+                                var cbf = data['stat']['can_be_forwarded'][forwardable_type];
+                                if (cbf.length) {
+                                    Messager.alert(1, 'Can be forwarded ' + forwardable_type + ': ' + cbf.join(' -> '));
+                                }
+                                //
+                                var cnbf = data['stat']['cannot_be_forwarded'][forwardable_type];
+                                if (cnbf.length) {
+                                    Messager.alert(1, 'Cannot be forwarded ' + forwardable_type + ': ' + cnbf.join(', '));
+                                }
                             }
                         }
                         f();

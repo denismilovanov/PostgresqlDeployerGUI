@@ -21,6 +21,35 @@ class Database
                 $sSchema
             );
 
+        } else if ($sObjectIndex == 'sequences') {
+
+            return self::$oDB->selectIndexedTable("
+                SELECT  c.relname,
+                        c.relname AS file,
+                        '' AS hash
+                    FROM pg_class AS c
+                    INNER JOIN pg_catalog.pg_namespace n ON
+                        n.oid = c.relnamespace
+                    WHERE   n.nspname = ?w AND
+                            c.relkind = 'S';
+            ",
+                $sSchema
+            );
+
+        } else if ($sObjectIndex == 'queries_before' or $sObjectIndex == 'queries_after') {
+
+            return self::$oDB->selectIndexedTable("
+                SELECT  object_name,
+                        object_name AS file,
+                        '' AS hash
+                    FROM postgresql_deployer.migrations
+                    WHERE   schema_name = ?w AND
+                            type_id = ?d;
+            ",
+                $sSchema,
+                $sObjectIndex == 'queries_before' ? 6 : 7
+            );
+
         } else if ($sObjectIndex == 'functions') {
 
             return self::$oDB->selectIndexedTable("

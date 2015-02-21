@@ -1,15 +1,18 @@
 <?php
 
-class Table extends DatabaseObject implements IForwardable
+class Sequence extends DatabaseObject implements IForwardable
 {
 
     public function objectExists()
     {
         return (boolean)self::$oDB->selectField("
             SELECT 1
-                FROM pg_tables
-                WHERE   schemaname = ?w AND
-                        tablename = ?w
+                FROM pg_class AS c
+                INNER JOIN pg_catalog.pg_namespace n ON
+                    n.oid = c.relnamespace
+                WHERE   n.nspname = ?w AND
+                        c.relname = ?w AND
+                        c.relkind = 'S';
         ",
             $this->sSchemaName,
             $this->sObjectName
@@ -123,14 +126,14 @@ class Table extends DatabaseObject implements IForwardable
     {
         if ($this->objectExists()) {
             self::$oDB->t()->query("
-                DROP TABLE ?.? CASCADE;
+                DROP SEQUENCE ?.? CASCADE;
             ",
-                // this variables were checked in objectExists so we can drop nothing but pointed table
+                // this variables were checked in objectExists so we can drop nothing but pointed sequence
                 $this->sSchemaName,
                 $this->sObjectName
             );
         } else {
-            throw new Exception("There is no table.");
+            throw new Exception("There is no sequence.");
         }
 
         return true;

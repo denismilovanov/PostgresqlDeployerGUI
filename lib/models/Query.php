@@ -1,18 +1,21 @@
 <?php
 
-class Table extends DatabaseObject implements IForwardable
+class Query extends DatabaseObject implements IForwardable
 {
+    protected static $iTypeId;
 
     public function objectExists()
     {
         return (boolean)self::$oDB->selectField("
             SELECT 1
-                FROM pg_tables
-                WHERE   schemaname = ?w AND
-                        tablename = ?w
+                FROM postgresql_deployer.migrations
+                WHERE   schema_name = ?w AND
+                        object_name = ?w AND
+                        type_id = ?d;
         ",
             $this->sSchemaName,
-            $this->sObjectName
+            $this->sObjectName,
+            static::$iTypeId // late static bindings
         );
     }
 
@@ -70,7 +73,7 @@ class Table extends DatabaseObject implements IForwardable
 
     public function isDefinable ()
     {
-        return true;
+        return false;
     }
 
     public function isDroppable ()
@@ -80,42 +83,29 @@ class Table extends DatabaseObject implements IForwardable
 
     public function define()
     {
-        $sError = '';
-        $sOutput = DBRepository::callExternalTool(
-            'pg_dump',
-            array(
-                '--schema-only',
-                '-t',
-                $this->sSchemaName . '.' . $this->sObjectName
-            ),
-            $sError
-        );
-
-        $sOutput = preg_replace("~^--.*~uixm", "", $sOutput);
-        $sOutput = preg_replace("~^SET.*~uixm", "", $sOutput);
-        $sOutput = preg_replace("~\\n\\n~uixs", "\n", $sOutput);
-        $sOutput = preg_replace("~\\n\\n~uixs", "\n", $sOutput);
-
-        $sOutput = trim($sOutput);
-
         return array(
-            'definition' => $sOutput,
-            'error' => $sError,
+            'definition' => '',
+            'error' => '',
         );
     }
 
     public function describe()
     {
-        $sError = '';
-        $sOutput = DBRepository::callExternalTool(
-            'psql',
-            array('-c\d+ ' . $this->sSchemaName . '.' . $this->sObjectName),
-            $sError
+        $sOutput = self::$oDB->selectField("
+            SELECT content
+                FROM postgresql_deployer.migrations
+                WHERE   schema_name = ?w AND
+                        object_name = ?w AND
+                        type_id = ?d;
+        ",
+            $this->sSchemaName,
+            $this->sObjectName,
+            static::$iTypeId
         );
 
         return array(
             'description' => $sOutput,
-            'error' => $sError,
+            'error' => '',
         );
     }
 
@@ -123,19 +113,32 @@ class Table extends DatabaseObject implements IForwardable
     {
         if ($this->objectExists()) {
             self::$oDB->t()->query("
-                DROP TABLE ?.? CASCADE;
+                DELETE FROM postgresql_deployer.migrations
+                    WHERE   schema_name = ?w AND
+                            object_name = ?w AND
+                            type_id = ?d;
             ",
-                // this variables were checked in objectExists so we can drop nothing but pointed table
+                // this variables were checked in objectExists so we can drop nothing but pointed query
                 $this->sSchemaName,
-                $this->sObjectName
+                $this->sObjectName,
+                static::$iTypeId
             );
         } else {
-            throw new Exception("There is no table.");
+            throw new Exception("There is no query.");
         }
 
         return true;
     }
 
 }
+
+class QueryBefore extends Query {
+    protected static $iTypeId = 6;
+}
+
+class QueryAfter extends Query {
+    protected static $iTypeId = 7;
+}
+
 
 
