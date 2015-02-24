@@ -42,7 +42,7 @@ class RepositoryController {
             $aCurrentDatabase = DBRepository::useDatabase($sDatabaseName);
         } catch (Exception $oException) {
             // e.g. credentials are wrong
-            return $app->redirect("/error/error/?e=" . $oException->getMessage());
+            return $app->redirect("/error/error/?e=" . urlencode($oException->getMessage()));
         }
 
         // do we have 2 similar databases in config?
@@ -112,6 +112,7 @@ class RepositoryController {
     public function index(Request $request, Application $app) {
         return $app['twig']->render('/index.haml', array(
             'bReloadAndApply' => DBRepository::getSettingValue('reload_and_apply.active'),
+            'sEnv' => DBRepository::getEnv(),
             'aInitialMessages' => DBRepository::getInitialMessages(),
         ));
     }
@@ -168,6 +169,7 @@ class RepositoryController {
 
         return $app['twig']->render('/view_diff.haml', array(
             'aDiff' => DBRepository::getDiffAsHTML($sSchemaName, $sObjectIndex, $sFilename),
+            'sEnv' => DBRepository::getEnv(),
         ));
     }
 
@@ -203,6 +205,7 @@ class RepositoryController {
         return $app['twig']->render('/define.haml', array(
             'sDefinition' => $sDefinition,
             'sError' => $sError,
+            'sEnv' => DBRepository::getEnv(),
         ));
     }
 
@@ -225,6 +228,7 @@ class RepositoryController {
         return $app['twig']->render('/describe.haml', array(
             'sDescription' => $sDescription,
             'sError' => $sError,
+            'sEnv' => DBRepository::getEnv(),
         ));
     }
 

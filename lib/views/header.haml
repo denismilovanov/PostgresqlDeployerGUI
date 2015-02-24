@@ -58,9 +58,10 @@
                                 /%li
                                 /    %a{:href => "#"} User settings
                         %p.navbar-text
-                            @#{aCurrentDatabase['index']}
+                            @#{aCurrentDatabase['index']}:#{sEnv}
                             -if aCurrentDatabase['version']
                                 [#{aCurrentDatabase['version']}]
+
                     /%li
                     /    %a{:href => "/settings/"} Global settings
 

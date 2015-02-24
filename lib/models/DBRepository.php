@@ -15,6 +15,7 @@ class DBRepository
     private static $sDirectory = null;
     private static $sDatabase = null;
     private static $sSchemasPath = 'schemas/';
+    private static $sEnv = 'development';
 
     private static $oLastAppliedObject = null;
 
@@ -211,6 +212,19 @@ class DBRepository
     }
 
     /**
+     * Returns current environment (read from settings).
+     *
+     * @param none
+     *
+     * @return string current env
+     */
+
+    public static function getEnv()
+    {
+        return self::$sEnv;
+    }
+
+    /**
      * Takes index of single database. Returns allowed databases.
      *
      * @param string database index
@@ -297,6 +311,9 @@ class DBRepository
                 self::$aSettings = array_replace_recursive(self::$aSettings, $aSettings);
             }
         }
+
+        // environment, see getFileContent and processContentBasingOnEnvironment
+        self::$sEnv = self::getSettingValue('env', self::$sEnv);
 
         // return
         return $aDatabase;
@@ -415,7 +432,7 @@ class DBRepository
     private static function getSchemas()
     {
         // schemas from git
-        $aSchemasRaw = self::getListOfFiles(self::$sDirectory . self::$sSchemasPath, false);
+        $aSchemasRaw = self::getListOfFiles(self::$sDirectory . self::$sSchemasPath);
         $aSchemas = array();
 
         foreach ($aSchemasRaw as $sFile) {
@@ -498,6 +515,7 @@ class DBRepository
 
                 //
                 sort($aFiles);
+
 
                 // let's walk through files
                 foreach ($aFiles as $aFile) {
@@ -763,7 +781,7 @@ class DBRepository
      * @return array files
      */
 
-    private static function getListOfFiles($sDirectory, $bRecursive = true, $bAndDirs = false)
+    private static function getListOfFiles($sDirectory)
     {
         if (substr($sDirectory, -1) != "/") {
             $sDirectory .= "/";
@@ -781,18 +799,10 @@ class DBRepository
         }
 
         while (false !== ($sFile = readdir($rHandle))) {
-            if ($sFile != "." and $sFile != ".." and $sFile != ".git") {
+            if ($sFile and $sFile[0] != '.') {
                 $sFile = $sDirectory . $sFile;
 
-                if(is_dir($sFile)){
-                    if ($bRecursive) {
-                        $aResult = array_merge($aResult, ListOfFiles::getListOfFiles($sFile, $bRecursive));
-                    }
-                    $aResult []= array(
-                        'file' => $sFile,
-                        'hash' => '',
-                    );
-                } else {
+                if(! is_dir($sFile)){
                     $aResult [self::getBaseNameWithoutExtension($sFile)]= array(
                         'file' => $sFile,
                         'hash' => self::getFileHash($sFile),
@@ -887,7 +897,7 @@ class DBRepository
     /**
      * Returns hash of file
      *
-     * @param string filenae
+     * @param string filename
      *
      * @return string hash
      */
@@ -895,6 +905,29 @@ class DBRepository
     private static function getFileHash($sFilename)
     {
         return DatabaseObject::getHash(self::getFileContent($sFilename));
+    }
+
+    /**
+     * Strips lines of files based on current environment
+     *
+     * @param string all environment query
+     *
+     * @return string current environment query
+     */
+
+    protected static function processContentBasingOnEnvironment($sQuery)
+    {
+        /*
+            -- @test
+            SELECT 1;
+            -- @test
+        */
+        $sQuery = preg_replace_callback('~\s*--\s*@([^\s]+)*(.+?)--\s*@([^\s]+)~uixs', function($aMatches) {
+            $bEnvMatch = ($aMatches[1] == self::$sEnv) and ($aMatches[1] == $aMatches[2]);
+            return $bEnvMatch ? $aMatches[2] : '';
+        }, $sQuery);
+
+        return $sQuery;
     }
 
     /**
@@ -910,8 +943,12 @@ class DBRepository
         if (! file_exists($sFilename)) {
             return '';
         }
-        return file_get_contents($sFilename);
+        $sContent = file_get_contents($sFilename);
+        $sContent = self::processContentBasingOnEnvironment($sContent);
+        return $sContent;
     }
+
+
 
     /**
      * Returns basename of file
