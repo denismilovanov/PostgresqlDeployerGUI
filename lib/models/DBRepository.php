@@ -918,12 +918,13 @@ class DBRepository
     protected static function processContentBasingOnEnvironment($sQuery)
     {
         /*
-            -- @test
+            -- @test,production
             SELECT 1;
-            -- @test
+            -- @test,production
         */
         $sQuery = preg_replace_callback('~\s*--\s*@([^\s]+)*(.+?)--\s*@([^\s]+)~uixs', function($aMatches) {
-            $bEnvMatch = ($aMatches[1] == self::$sEnv) and ($aMatches[1] == $aMatches[2]);
+            $bEnvMatch = ($aMatches[1] == $aMatches[3]) &&
+                         in_array(self::$sEnv, explode(',', $aMatches[1]));
             return $bEnvMatch ? $aMatches[2] : '';
         }, $sQuery);
 
