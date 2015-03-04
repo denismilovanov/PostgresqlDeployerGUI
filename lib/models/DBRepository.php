@@ -678,6 +678,8 @@ class DBRepository
                 }
 
                 if (! $aObject['can_be_forwarded']) {
+                    // for messages in panel
+                    $aResult['stat']['cannot_be_forwarded'][$sObjectIndex] []= $sQualifiedObjectName;
                     // skip object which cannot be forwarded
                     continue;
                 }
