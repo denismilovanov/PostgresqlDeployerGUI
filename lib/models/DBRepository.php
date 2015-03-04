@@ -807,6 +807,11 @@ class DBRepository
                         'file' => $sFile,
                         'hash' => self::getFileHash($sFile),
                     );
+                } else {
+                    $aResult []= array(
+                        'file' => $sFile,
+                        'hash' => '',
+                    );
                 }
             }
         }
