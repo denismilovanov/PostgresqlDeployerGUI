@@ -245,7 +245,15 @@
                             %span.solid-link
                                 View diff
                     %td.item.item-view-apply
+                        {{#dependencies_will_be_applied_automatically}}
                         Will be applied automatically
+                        {{/dependencies_will_be_applied_automatically}}
+                        {{#dependencies_will_be_applied_automatically_only_by_forwarding}}
+                        Forwarding is required for automatical deployment
+                        {{/dependencies_will_be_applied_automatically_only_by_forwarding}}
+                        {{#dependencies_require_manual_deployment}}
+                        Manual deployment required
+                        {{/dependencies_require_manual_deployment}}
                 {{/dependencies}}
 
                 {{#references}}

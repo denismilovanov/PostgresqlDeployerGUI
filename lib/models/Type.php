@@ -75,8 +75,12 @@ class Type extends DatabaseObject
         DBRepository::setLastAppliedObject($this);
 
         if ($this->signatureChanged()) {
-            $aDroppedFunctionsRaw = self::$oDB->selectTable("
-                SELECT *
+            $aDroppedFunctionsRaw = self::$oDB->selectIndexedTable("
+                SELECT  -- index in result set
+                        -- also see DatabaseObject::__toString
+                        schema_name || '/' || object_index || '/' || object_name,
+                        -- other
+                        *
                     FROM postgresql_deployer.drop_type_with_dependent_functions(?w, ?w, ?w);
             ",
                 $this->sDatabaseName,
@@ -86,8 +90,8 @@ class Type extends DatabaseObject
 
             $aDroppedFunctions = array();
 
-            foreach ($aDroppedFunctionsRaw as $aDroppedFunctionRaw) {
-                $aDroppedFunctions []= DatabaseObject::make(
+            foreach ($aDroppedFunctionsRaw as $sIndex => $aDroppedFunctionRaw) {
+                $aDroppedFunctions[$sIndex] = DatabaseObject::make(
                     $aDroppedFunctionRaw['database_name'],
                     $aDroppedFunctionRaw['schema_name'],
                     $aDroppedFunctionRaw['object_index'],

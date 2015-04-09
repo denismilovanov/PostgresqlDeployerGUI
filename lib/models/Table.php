@@ -18,12 +18,28 @@ class Table extends DatabaseObject implements IForwardable
 
     public function getObjectDependencies()
     {
-        return array();
+        if (! $this->signatureChanged()) {
+            return array();
+        }
+        return self::$oDB->selectTable("
+            SELECT  database_name,
+                    schema_name AS dependency_schema_name,
+                    object_index AS dependency_object_index,
+                    object_name AS dependency_object_name,
+                    additional_sql
+                FROM postgresql_deployer.get_table_dependent_functions(?w, ?w, ?w);
+        ",
+            $this->sDatabaseName,
+            $this->sSchemaName,
+            $this->sObjectName
+        );
+
     }
 
     public function signatureChanged()
     {
-        return false;
+        return  $this->oDiff and // diff can be null for objects not in git
+                $this->oDiff->tableSignatureChanged();
     }
 
     public function applyObject()
@@ -46,15 +62,43 @@ class Table extends DatabaseObject implements IForwardable
             return;
         }
 
+        $aDroppedFunctions = array();
+
         DBRepository::setLastAppliedObject($this);
 
         $sForwardStatements = $this->getDiff()->getForwardStatements("\n");
-
         $sForwardStatements = self::stripTransaction($sForwardStatements);
+
+        if ($this->signatureChanged()) {
+            $aDroppedFunctionsRaw = self::$oDB->selectIndexedTable("
+                SELECT  -- index in result set
+                        -- also see DatabaseObject::__toString
+                        schema_name || '/' || object_index || '/' || object_name,
+                        -- other
+                        *
+                    FROM postgresql_deployer.get_table_dependent_functions(?w, ?w, ?w);
+            ",
+                $this->sDatabaseName,
+                $this->sSchemaName,
+                $this->sObjectName
+            );
+
+            foreach ($aDroppedFunctionsRaw as $sIndex => $aDroppedFunctionRaw) {
+                $aDroppedFunctions[$sIndex] = DatabaseObject::make(
+                    $aDroppedFunctionRaw['database_name'],
+                    $aDroppedFunctionRaw['schema_name'],
+                    $aDroppedFunctionRaw['object_index'],
+                    $aDroppedFunctionRaw['object_name'],
+                    '1'
+                );
+            };
+        }
 
         if ($sForwardStatements) {
             self::$oDB->query($sForwardStatements);
         }
+
+        return $aDroppedFunctions;
     }
 
     public function hasChanged($sCurrentHash)

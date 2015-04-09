@@ -591,6 +591,9 @@ class DBRepository
                             // dependencies
                             'dependencies' => $aDependencies,
                             'dependencies_exist' => $aDependencies ? true : null,
+                            'dependencies_will_be_applied_automatically' => $oDatabaseObject instanceof Type,
+                            'dependencies_will_be_applied_automatically_only_by_forwarding' => ($oDatabaseObject instanceof Table) and $bCanBeForwarded,
+                            'dependencies_require_manual_deployment' => ($oDatabaseObject instanceof Table) and ! $bCanBeForwarded,
                             'references' => $aReferences,
                             'references_exist' => $aReferences ? true : null,
 
@@ -1091,7 +1094,7 @@ class DBRepository
                     $aNonForwarded[$sObjectIndex][(string)$oObject] = $oObject;
                 }
             } else if ($sObjectIndex == 'functions') {
-                $aFunctions []= $oObject;
+                $aFunctions[(string)$oObject] = $oObject;
             } else if ($sObjectIndex == 'types') {
                 $aTypes []= $oObject;
             } else if ($sObjectIndex == 'seeds') {
@@ -1107,15 +1110,26 @@ class DBRepository
         // sort by topological order in key
         ksort($aForwarded['tables']);
 
+        // symbolic names of functions (schema/functions/name)
+        // to compare automatically dropped functions set and
+        // functions chosen for deploying
+        $aFunctionsKeys = array_keys($aFunctions);
+
         // the heart of deployer - single transaction
         try {
             self::$oDB->startTransaction();
+
+            // changes in tables and types may cause some function to be droppped
+            $aDroppedFunctions = array();
 
             foreach (array('queries_before', 'sequences', 'tables') as $sForwardableIndex) {
 
                 // forwarding queries/sequences/tables - deploying diff
                 foreach ($aForwarded[$sForwardableIndex] as $iForwardOrder => $oForwardableObject) {
-                    $oForwardableObject->forward();
+                    $aForwardResult = $oForwardableObject->forward();
+                    if ($sForwardableIndex == 'tables') {
+                        $aDroppedFunctions = array_merge($aDroppedFunctions, $aForwardResult);
+                    }
                     $oForwardableObject->upsertMigration();
                 }
 
@@ -1134,34 +1148,27 @@ class DBRepository
                 $aSeed->upsertMigration();
             }
 
-            $aDroppedFunctions = array();
-
             // continue with types
             foreach ($aTypes as $aType) {
-                $aDroppedFunctions = $aType->applyObject();
+                $aDroppedFunctions = array_merge($aDroppedFunctions, $aType->applyObject());
                 $aType->upsertMigration();
             }
 
-            // applying type may cause some functions to be dropped
-            foreach ($aDroppedFunctions as $aDroppedFunction) {
+            // applying types and forwarding tables may cause some functions to be dropped
+            // we have to create them once again
+            foreach ($aDroppedFunctions as $sDroppedFunctionKey => $aDroppedFunction) {
 
                 // is dropped function already to be deployed?
-                $bFound = false;
-                foreach ($aFunctions as $aFunction) {
-                    if ($aFunction->compare($aDroppedFunction)) {
-                        $bFound = true;
-                        break;
-                    }
-                }
+                $bAlreadyInListForDeploy = in_array($sDroppedFunctionKey, $aFunctionsKeys);
 
-                if (! $bFound) {
+                if (! $bAlreadyInListForDeploy) {
                     // no, we have to add it
                     $sDroppedFileName = self::makeRelativeFileName(
                                             $aDroppedFunction->sSchemaName,
                                             $aDroppedFunction->sObjectIndex,
                                             $aDroppedFunction->sObjectName);
                     //
-                    $aFunctions []= DatabaseObject::make(
+                    $aFunctions[$sDroppedFunctionKey] = DatabaseObject::make(
                         self::$sDatabase,
                         $aDroppedFunction->sSchemaName,
                         $aDroppedFunction->sObjectIndex,

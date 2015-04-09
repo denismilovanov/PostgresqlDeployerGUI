@@ -39,6 +39,12 @@ class Diff
     }
 
     //
+    public function tableSignatureChanged() {
+        $sFullDiff = implode("\n", $this->aInsertions) . "\n" . implode("\n", $this->aDeletions);
+        return preg_match("~(ADD)|(DROP)\s+COLUMN~uixs", $sFullDiff, $aMatches);
+    }
+
+    //
     public function addReference(DatabaseObject $oGivenReference) {
         foreach ($this->aReferences as $oReference) {
             if ($oGivenReference->compare($oReference)) {
