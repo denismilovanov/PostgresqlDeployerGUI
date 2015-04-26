@@ -16,6 +16,10 @@
 
     %body
 
+        #message-wrapper
+            #message.alert.alert-info{:role => "alert"}
+                &nbsp;
+
         %input#database-name{ :type => "hidden", :value => "#{aCurrentDatabase['index']}"}
 
         %nav.navbar.navbar-default{:role => "navigation"}

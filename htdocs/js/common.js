@@ -1,7 +1,18 @@
 Messager = {
 
+    flash: function(message) {
+        $('#message').text(message);
+        $('#message-wrapper').show();
+    },
+
+    hideFlash: function() {
+        $('#message-wrapper').hide();
+        $('#message').text('');
+    },
+
     alert: function (status, message) {
         message = message || '';
+
         if (status == 1) {
             message = '<span class="message message-success">' + message + '</span><br />';
         } else {
@@ -23,14 +34,17 @@ Git = {
     commits_template: '',
 
     request: function(method, url, data, success) {
+        Messager.flash('Pending...');
         $.ajax({
             url: url,
             dataType: "json",
             type: method,
             data: data
         }).done(function(data) {
+            Messager.hideFlash();
             success(data);
         }).fail(function() {
+            Messager.hideFlash();
             Messager.alert(0, 'Unable to make request');
         });
     },

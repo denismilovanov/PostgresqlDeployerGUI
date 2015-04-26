@@ -175,3 +175,21 @@ tt {
     padding-left: 2px;
     padding-right: 10px;
 }
+
+#message-wrapper {
+    z-index: 100000;
+    position: fixed;
+    top: 70px;
+    left: 50%;
+    font-size: 18px;
+    display: none;
+}
+
+#message {
+    z-index: 100001;
+    position: relative;
+    margin-left: -300px;
+    width: 600px;
+    padding: 20px;
+    overflow: hidden;
+}
