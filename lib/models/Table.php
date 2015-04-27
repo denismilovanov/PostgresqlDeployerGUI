@@ -58,11 +58,11 @@ class Table extends DatabaseObject implements IForwardable
 
     public function forward()
     {
-        if (self::$bImitate) {
-            return;
-        }
-
         $aDroppedFunctions = array();
+
+        if (self::$bImitate) {
+            return $aDroppedFunctions;
+        }
 
         DBRepository::setLastAppliedObject($this);
 

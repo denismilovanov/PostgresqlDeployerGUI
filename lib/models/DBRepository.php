@@ -201,7 +201,7 @@ class DBRepository
         $aBranches = explode("\n", $aBranches);
         foreach ($aBranches as $sBranch) {
             $sBranch = trim($sBranch);
-            if ($sBranch[0] == '*') {
+            if ($sBranch and $sBranch[0] == '*') {
                 $sBranch = str_replace("* ", "", $sBranch);
                 $sBranch = str_replace("(detached from ", "", $sBranch);
                 $sBranch = str_replace(")", "", $sBranch);
@@ -209,6 +209,7 @@ class DBRepository
                 return $sBranch;
             }
         }
+        return 'master'; // will throw error during checkout (master actually does not exist)
     }
 
     /**
