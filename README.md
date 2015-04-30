@@ -32,7 +32,7 @@ PostgreSQLDeployerGUI works with 4 database objects types:
 * types (PostgreSQL user types),
 * functions (PostgreSQL stored procedures).
 
-Tables DDL's (`CREATE TABLE`, `CREATE INDEX CONCURRENTLY`, `ALTER TABLE`) are committed into git and can be
+Tables DDL's (`CREATE TABLE`, `CREATE INDEX`, `ALTER TABLE`) are committed into git and can be
 deployed automatically if 2 conditions are satisfied:
 * there is no significant `deletions` lines in commit,
 * there are no cyclic table references in `additions` lines among commits.
@@ -95,10 +95,10 @@ Example:
                     "db_name": "db1"
                 },
                 "git_root": "/home/user/work/project/db1_git_root/"
-		
-		,"schemas_path": "dir1/dir2/schemas/" #optinal, 'schemas/' by default
-
-		,"settings": {
+                
+                ,"schemas_path": "dir1/dir2/schemas/" #optinal, 'schemas/' by default
+                
+                ,"settings": {
                     #optional settings overloading global
                     #see settings.json
                 }
@@ -137,7 +137,7 @@ Example:
                 "active": true
             },
             "plpgsql_check": {
-                "active": true
+                "active": false
             },
             "paths": {
                 "pg_bin": "/usr/lib/postgresql/%v/bin/"
@@ -147,9 +147,9 @@ Example:
 
 Explanation:
 
-1) not_in_git - this option tells if non-git database objects are shown (they will be marked as `NOT IN GIT`),
-2) reload_and_apply - show 'Reload and apply' button (makes sense for development purposes only, not in production),
-3) plpgsql_check - this option runs checking of all stored functions after deployment but before final commit (checking is performed by [plpgsql_check extension](https://github.com/okbob/plpgsql_check.git),
+1) not_in_git - this option tells if non-git database objects are shown (they will be marked as `NOT IN GIT`),  
+2) reload_and_apply - show 'Reload and apply' button (makes sense for development purposes only, not in production),  
+3) plpgsql_check - this option runs checking of all stored functions after deployment but before final commit (checking is performed by [plpgsql_check extension](https://github.com/okbob/plpgsql_check.git),  
 4) pg_bin - path to psql and pg_dump executables (%v will be replaced to MAJOR.MINOR version of current database you work at).
 
 You may omit any of these options.
@@ -241,4 +241,8 @@ Expected structure of type file `type_name.sql` (usual pg `CREATE TYPE`):
     CREATE TYPE type_name AS (
         <description>
     );
+    
+### Notes
+
+1. Do not forget that `CREATE / DROP INDEX CONCURRENTLY` cannot be performed within a transaction block.
 
