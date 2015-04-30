@@ -137,7 +137,8 @@ Example:
                 "active": true
             },
             "plpgsql_check": {
-                "active": false
+                "active": false,
+                "exclude_regexp": "tricky_functions_schema\\.tricky_"
             },
             "paths": {
                 "pg_bin": "/usr/lib/postgresql/%v/bin/"
