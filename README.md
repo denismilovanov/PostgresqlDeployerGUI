@@ -26,11 +26,14 @@ Git (where I offer to store schema) is already migration-fashioned system. You m
 get schema state at any time in the past to rollback if it is needed, or say `git pull` and see the difference between states
 (if you organize database objects storage).
 
-PostgreSQLDeployerGUI works with 4 database objects types:
+PostgreSQLDeployerGUI works with 6 database objects types:
 * tables,
 * seeds (data of system dictionaries, mappings, settings, etc),
 * types (PostgreSQL user types),
-* functions (PostgreSQL stored procedures).
+* functions (PostgreSQL stored procedures),
+* sequencies,
+* triggers,
+and with arbitrary queries.
 
 Tables DDL's (`CREATE TABLE`, `CREATE INDEX`, `ALTER TABLE`) are committed into git and can be
 deployed automatically if 2 conditions are satisfied:
@@ -165,7 +168,7 @@ Your schema repository should have structure like this:
                 functions/
                     function_name1.sql
                     function_name2.sql
-                        ...
+                    ...
                 seeds/
                     seed_table_name1.sql
                     seed_table_name2.sql
@@ -178,11 +181,31 @@ Your schema repository should have structure like this:
                     type_name1.sql
                     type_name2.sql
                     ...
+                sequences/
+                    sequence_name1.sql
+                    sequence_name2.sql
+                    ...
+                triggers/
+                    this_schema_table_name1.trigger_name1.sql
+                    this_schema_table_name2.trigger_name2.sql
+                    ...
+                queries_before/
+                    01_query.sql
+                    02_query.sql
+                    ...
+                queries_after/
+                    01_query.sql
+                    02_query.sql
+                    ...
             schema2/
                 functions/
                 seeds/
                 tables/
                 types/
+                sequences/
+                triggers/
+                queries_before/
+                queries_after/
             ...
         other_directories/
         ...
@@ -225,9 +248,8 @@ Expected structure of function file `function_name.sql` (usual pg `CREATE OR REP
 
 These cases related to functions currently are not supported:
 
-1. Trigger functions.
-2. Functions indexes are based on.
-3. Functions overloading. It is not allowed to have more than one functions with the same or different names in one file.
+1. Functions for functional indexes and handling triggers events are forbidden to be dropped automatically.
+2. Functions overloading. It is not allowed to have more than one functions with the same or different names in one file.
 
 When you use custom type name you should also provide schema name (even if schema is in `search_path`):
 
@@ -242,6 +264,23 @@ Expected structure of type file `type_name.sql` (usual pg `CREATE TYPE`):
     CREATE TYPE type_name AS (
         <description>
     );
+
+### Sequences
+
+Expected structure of sequence file `sequnces_name.sql`:
+
+    CREATE SEQUENCE sequence_name [<params>];
+
+### Triggers
+
+Trigger file name should consist of table name and trigger_name (`table_name.trigger_name.sql`) and contain something like this:
+
+    CREATE TRIGGER trigger_name
+        AFTER INSERT ON current_schema_name.table_name
+        FOR EACH ROW
+        EXECUTE PROCEDURE arbitrary_schema.trigger_procedure();
+
+Trigger will be dropped and deployed again as soon as file content is changed (exactly like `seed` objects).
     
 ### Notes
 

@@ -90,6 +90,22 @@ class Database
                 $sSchema
             );
 
+        } else if ($sObjectIndex == 'triggers') {
+
+            return self::$oDB->selectIndexedTable("
+                SELECT c.relname || '.' || t.tgname, c.relname || '.' || t.tgname || '.sql' AS file, '' AS hash
+                    FROM pg_catalog.pg_trigger AS t
+                    INNER JOIN pg_catalog.pg_class AS c
+                        ON t.tgrelid = c.oid
+                    INNER JOIN pg_catalog.pg_namespace n
+                        ON n.oid = c.relnamespace
+                    WHERE   n.nspname = ?w AND
+                            NOT t.tgisinternal
+                    ORDER BY t.tgname;
+            ",
+                $sSchema
+            );
+
         }
 
         return array();

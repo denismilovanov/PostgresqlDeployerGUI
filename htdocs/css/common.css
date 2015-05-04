@@ -86,6 +86,7 @@ tt {
     width: 30%;
     border-right: 1px silver dotted;
     font-size: 110%;
+    word-wrap: break-word;
 }
 
 .item-dependent-name {

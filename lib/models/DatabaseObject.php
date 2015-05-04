@@ -64,6 +64,7 @@ abstract class DatabaseObject
             'sequences' => 'Sequence',
             'queries_before' => 'QueryBefore',
             'queries_after' => 'QueryAfter',
+            'triggers' => 'Trigger',
         );
 
         $aObject = new $aClassesNames[$sObjectIndex];

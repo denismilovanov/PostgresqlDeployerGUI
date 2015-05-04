@@ -13,6 +13,7 @@ require_once '../lib/models/StoredFunction.php';
 require_once '../lib/models/Type.php';
 require_once '../lib/models/Sequence.php';
 require_once '../lib/models/Query.php';
+require_once '../lib/models/Trigger.php';
 
 require_once '../lib/models/User.php';
 

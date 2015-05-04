@@ -17,6 +17,9 @@ class DBRepository
     private static $sSchemasPath = 'schemas/';
     private static $sEnv = 'development';
 
+    private static $aForwardableObjectsIndexes = null;
+    private static $aObjectsIndexes = null;
+
     private static $oLastAppliedObject = null;
 
     // settings of features
@@ -383,7 +386,11 @@ class DBRepository
 
     private static function getObjectsIndexes()
     {
-        return self::$oDB->selectColumn("
+        if (self::$aObjectsIndexes !== null) {
+            return self::$aObjectsIndexes;
+        }
+
+        return self::$aObjectsIndexes = self::$oDB->selectColumn("
             SELECT index
                 FROM postgresql_deployer.migrations_objects
                 ORDER BY rank ASC;
@@ -400,7 +407,11 @@ class DBRepository
 
     private static function getForwardableObjectsIndexes()
     {
-        return self::$oDB->selectColumn("
+        if (self::$aForwardableObjectsIndexes !== null) {
+            return self::$aForwardableObjectsIndexes;
+        }
+
+        return self::$aForwardableObjectsIndexes = self::$oDB->selectColumn("
             SELECT index
                 FROM postgresql_deployer.migrations_objects
                 WHERE (params->>'is_forwardable')::boolean
@@ -516,7 +527,6 @@ class DBRepository
 
                 //
                 sort($aFiles);
-
 
                 // let's walk through files
                 foreach ($aFiles as $aFile) {
@@ -672,7 +682,7 @@ class DBRepository
                 $sObjectIndex = $aSchema['object_index'];
 
                 if (! in_array($sObjectIndex, self::getForwardableObjectsIndexes())) {
-                    // skip seeds, functions, types
+                    // skip seeds, functions, types, triggers
                     continue;
                 }
 
@@ -1044,6 +1054,7 @@ class DBRepository
         $aTypes = array();
         $aFunctions = array();
         $aSeeds = array();
+        $aTriggers = array();
 
         //
         foreach (self::getForwardableObjectsIndexes() as $sObjectIndex) {
@@ -1075,7 +1086,7 @@ class DBRepository
                 self::$sDatabase,
                 $sSchemaName,
                 $sObjectIndex,
-                self::getBaseNameWithoutExtension($sBaseName),
+                $sBaseName,
                 self::getFileContent(self::getAbsoluteFileName($sRelativeFileName))
             );
 
@@ -1100,6 +1111,8 @@ class DBRepository
                 $aTypes []= $oObject;
             } else if ($sObjectIndex == 'seeds') {
                 $aSeeds []= $oObject;
+            } else if ($sObjectIndex == 'triggers') {
+                $aTriggers []= $oObject;
             }
         }
 
@@ -1190,6 +1203,12 @@ class DBRepository
                 // let's check stored functions
                 Database::checkAllStoredFunctionsByPlpgsqlCheck();
                 // says rollback and throws exception if check fails
+            }
+
+            // deploying triggers
+            foreach ($aTriggers as $aTrigger) {
+                $aTrigger->applyObject();
+                $aTrigger->upsertMigration();
             }
 
             //
