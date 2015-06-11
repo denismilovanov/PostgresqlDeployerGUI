@@ -5,6 +5,9 @@ use Symfony\Component\HttpFoundation\Request;
 
 class RepositoryController {
 
+    // current user
+    private static $aCurrentUser = null;
+
     // authorization cookie
     public static function setAuthorizationCookie($aResponse, $sCookieValue, $sDatabaseName) {
         $sCookie = new Symfony\Component\HttpFoundation\Cookie(
@@ -16,9 +19,18 @@ class RepositoryController {
         return $aResponse;
     }
 
-    public static function getAuthorizationCookie($sDatabaseName)
-    {
+    public static function getAuthorizationCookie($sDatabaseName) {
         return isset($_COOKIE['uid'][$sDatabaseName]) ? $_COOKIE['uid'][$sDatabaseName] : '';
+    }
+
+    private function isOperationAllowed() {
+        return self::$aCurrentUser['name'] != 'guest';
+    }
+
+    private function operationNotAllowed(Application $app) {
+        $aResult['status'] = 0;
+        $aResult['message'] = 'You are not allowed to perform this operation (guest access)';
+        return $app->json($aResult);
     }
 
     // redirect to first database in list
@@ -65,6 +77,9 @@ class RepositoryController {
             // redirects to login
             return $app->redirect("/" . $sDatabaseName . "/login/");
         }
+
+        // remember user
+        self::$aCurrentUser = $aCurrentUser;
 
         // authorized successfully
         $app['twig']->addGlobal('aCurrentUser', $aCurrentUser);
@@ -175,6 +190,10 @@ class RepositoryController {
 
     // action apply (ajax)
     public function apply(Request $request, Application $app) {
+        if (! $this->isOperationAllowed()) {
+            return $this->operationNotAllowed($app);
+        }
+
         try {
             $aResult = DBRepository::apply($app['request']->get('objects'), (boolean)$app['request']->get('imitate'));
             $aResult['status'] = 1;
@@ -234,6 +253,10 @@ class RepositoryController {
 
     // action drop (ajax)
     public function drop(Request $request, Application $app) {
+        if (! $this->isOperationAllowed()) {
+            return $this->operationNotAllowed($app);
+        }
+
         $sSchemaName = $app['request']->get('schema_name');
         $sObjectIndex = $app['request']->get('object_index');
         $sFilename = $app['request']->get('file_name');
