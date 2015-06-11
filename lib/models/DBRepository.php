@@ -333,7 +333,12 @@ class DBRepository
 
     public static function getCommits()
     {
-        $aCommitsRaw = self::$oGit->getLog(null);
+        $iCommitsLimit = self::getSettingValue('commits_list.limit');
+        if (! $iCommitsLimit) {
+            $iCommitsLimit = null;
+        }
+
+        $aCommitsRaw = self::$oGit->getLog(null, null, 0, $iCommitsLimit);
         $aCommits = array(
             'commits' => array(),
             'current_commit_hash' => '',
