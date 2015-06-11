@@ -1,6 +1,11 @@
 PostgresqlDeployerGUI
 =====================
 
+### Demo
+
+[http://pg.denismilovanov.net](http://pg.denismilovanov.net)  
+E-mail `guest`, password `guest`.
+
 ### Intro
 
 PostgresqlDeployerGUI provides you web interface that simplifies deployment of PostgreSQL schema.
@@ -33,7 +38,7 @@ PostgreSQLDeployerGUI works with 6 database objects types:
 * functions (PostgreSQL stored procedures),
 * sequencies,
 * triggers,
-and with arbitrary queries.
+* arbitrary queries.  
 
 Tables DDL's (`CREATE TABLE`, `CREATE INDEX`, `ALTER TABLE`) are committed into git and can be
 deployed automatically if 2 conditions are satisfied:
