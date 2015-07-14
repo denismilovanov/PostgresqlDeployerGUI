@@ -51,6 +51,17 @@ class StoredFunction extends DatabaseObject
         return $sReturnType;
     }
 
+    public function getGrants($sFunctionBody)
+    {
+        preg_match("~GRANT\s+EXECUTE\s+ON\s+FUNCTION.+?\(.*?\)\s*TO\s*(.*?);~uixs", $sFunctionBody, $aMatches);
+        if (isset($aMatches[1])) {
+            $sGrants = trim($aMatches[1]);
+        } else {
+            return false;
+        }
+        return $sGrants;
+    }
+
     public function signatureChanged()
     {
         $sNewFunctionBody = $this->sObjectContent;
@@ -77,13 +88,26 @@ class StoredFunction extends DatabaseObject
                 $sNewReturnType != $sOldReturnType;
     }
 
+    public function grantsChanged()
+    {
+        $sNewFunctionBody = $this->sObjectContent;
+        $sOldFunctionBody = $this->getObjectContentInDatabase();
+
+        $sNewGrants = $this->getGrants($sNewFunctionBody);
+        $sOldGrants = $this->getGrants($sOldFunctionBody);
+
+        return  $sNewGrants === false or
+                $sOldGrants === false or
+                $sNewGrants != $sOldGrants;
+    }
+
     public function applyObject()
     {
         if (self::$bImitate) {
             return;
         }
 
-        if ($this->signatureChanged() or $this->returnTypeChanged()) {
+        if ($this->signatureChanged() or $this->returnTypeChanged() or $this->grantsChanged()) {
             self::$oDB->query("
                 SELECT postgresql_deployer.drop_all_functions_by_name(?w, ?w);
             ",

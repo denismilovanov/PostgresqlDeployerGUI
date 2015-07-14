@@ -161,6 +161,11 @@
                             Return type changed
                         {{/return_type_changed}}
 
+                        {{#grants_changed}}
+                        %span.label.label-danger<>
+                            Grants changed
+                        {{/grants_changed}}
+
                         {{#dependencies_exist}}
                         %span.label.label-danger<>
                             There are dependencies

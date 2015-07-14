@@ -580,10 +580,12 @@ class DBRepository
                         if (! $bIsNew and $bInGit) {
                             $bSignatureChanged = $oDatabaseObject->signatureChanged();
                             $bReturnTypeChanged = ($oDatabaseObject instanceof StoredFunction) && $oDatabaseObject->returnTypeChanged();
+                            $bGrantsChanged = ($oDatabaseObject instanceof StoredFunction) && $oDatabaseObject->grantsChanged();
                         } else {
                             // it has no sense showing it
                             $bSignatureChanged = false;
                             $bReturnTypeChanged = false;
+                            $bGrantsChanged = false;
                         }
 
                         // work with references list to show it in panel
@@ -616,6 +618,7 @@ class DBRepository
                             // signatures
                             'signature_changed' => $bSignatureChanged,
                             'return_type_changed' => $bReturnTypeChanged,
+                            'grants_changed' => $bGrantsChanged,
 
                             // git info
                             'manual_deployment_required' => (($oDatabaseObject instanceof IForwardable) and $bInGit) ? true : null,
