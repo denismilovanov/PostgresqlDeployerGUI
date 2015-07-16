@@ -45,6 +45,9 @@
                         -if bReloadAndApply
                             %button.btn.btn-success#reload-and-apply{ :type => "button", :style => "font-weight: bold;" }
                                 Reload & apply
+                                - if bReloadAndApplyIgnoreManual
+                                    %div{ :style => "font-size: 0.5em; margin-top: -5px;" }
+                                        ignore manual
                             %br
                             %br
 
@@ -194,7 +197,8 @@
                         {{/not_in_git}}
                     %td.item.item-view-diff
                         {{^not_in_git}}
-                        %a{ :href => "/{{database_name}}/{{schema_name}}/{{object_index}}/{{object_name}}/view_diff/", :target => "_blank", :style => "text-decoration: none; margin-right: 20px;" }<>
+                        %a{ :href => "/{{database_name}}/{{schema_name}}/{{object_index}}/{{object_name}}/view_diff/", |
+                            :target => "_blank", :style => "text-decoration: none; margin-right: 20px;" }<>
                             %span.solid-link<>
                                 {{#new_object}}
                                 View
@@ -205,19 +209,22 @@
                         {{/not_in_git}}
 
                         {{#define}}
-                        %a{ :href => "/{{database_name}}/{{schema_name}}/{{object_index}}/{{object_name}}/define/", :target => "_blank", :style => "text-decoration: none; margin-right: 20px;" }<>
+                        %a{ :href => "/{{database_name}}/{{schema_name}}/{{object_index}}/{{object_name}}/define/", |
+                            :target => "_blank", :style => "text-decoration: none; margin-right: 20px;" }<>
                             %span.solid-link<>
                                 Define
                         {{/define}}
 
                         {{#describe}}
-                        %a{ :href => "/{{database_name}}/{{schema_name}}/{{object_index}}/{{object_name}}/describe/", :target => "_blank", :style => "text-decoration: none; margin-right: 20px;" }<>
+                        %a{ :href => "/{{database_name}}/{{schema_name}}/{{object_index}}/{{object_name}}/describe/", |
+                            :target => "_blank", :style => "text-decoration: none; margin-right: 20px;" }<>
                             %span.solid-link<>
                                 Describe
                         {{/describe}}
 
                         {{#drop}}
-                        %a{ :onclick => "Git.drop('{{schema_name}}', '{{object_index}}', '{{object_name}}'); return false;",  :style => "text-decoration: none; margin-right: 20px;" }<>
+                        %a{ :onclick => "Git.drop('{{schema_name}}', '{{object_index}}', '{{object_name}}'); return false;", |
+                            :style => "text-decoration: none; margin-right: 20px;" }<>
                             %span.solid-link<>
                                 Drop
                         {{/drop}}
@@ -226,7 +233,12 @@
                         %table
                             %tr
                                 %td.td-checkbox
-                                    %input{ :class => "apply apply-main s-{{schema_name}} o-{{object_index}}", :type => "checkbox", :checked => null, :name => "{{schema_name}}/{{object_index}}/{{object_name}}", :id => "apply_{{schema_name}}_{{object_index}}_{{object_name}}", :value => "1" }
+                                    %input{ :class => "apply apply-main s-{{schema_name}} o-{{object_index}}", |
+                                        :type => "checkbox", :checked => null, |
+                                        :name => "{{schema_name}}/{{object_index}}/{{object_name}}", |
+                                        :id => "apply_{{schema_name}}_{{object_index}}_{{object_name}}", |
+                                        :manual => "{{manual_deployment_required}}", |
+                                        :value => "1" }
                                 %td.td-checkbox
                                     %span
                                         %label.label-for-checkbox{ :for => "apply_{{schema_name}}_{{object_index}}_{{object_name}}" }
@@ -234,7 +246,10 @@
 
                                 {{#can_be_forwarded}}
                                 %td.td-checkbox
-                                    %input{ :class => "apply forward s-{{schema_name}} o-{{object_index}}", :type => "checkbox", :checked => null, :name => "{{schema_name}}/{{object_index}}/{{object_name}}/forward_order", :id => "forward_{{schema_name}}_{{object_index}}_{{object_name}}", :value => "{{forward_order}}" }
+                                    %input{ :class => "apply forward s-{{schema_name}} o-{{object_index}}", :type => "checkbox", |
+                                        :checked => null, :name => "{{schema_name}}/{{object_index}}/{{object_name}}/forward_order", |
+                                        :id => "forward_{{schema_name}}_{{object_index}}_{{object_name}}", |
+                                        :value => "{{forward_order}}" }
                                 %td.td-checkbox
                                     %span
                                         %label.label-for-checkbox{ :for => "forward_{{schema_name}}_{{object_index}}_{{object_name}}" }
@@ -246,7 +261,8 @@
                     %td.item.item-dependent-name{ :colspan => 2, :style => "padding-left: 50px;" }
                         {{additional_sql}}
                     %td.item.item-view-diff
-                        %a{ :href => "/{{database_name}}/{{dependency_schema_name}}/{{dependency_object_index}}/{{dependency_object_name}}/view_diff/", :style => "text-decoration: none;", :target => "_blank" }
+                        %a{ :href => "/{{database_name}}/{{dependency_schema_name}}/{{dependency_object_index}}/{{dependency_object_name}}/view_diff/", |
+                            :style => "text-decoration: none;", :target => "_blank" }
                             %span.solid-link
                                 View diff
                     %td.item.item-view-apply
@@ -303,7 +319,7 @@
             });
 
             $("#reload-and-apply").click(function() {
-                Git.reloadAndApply();
+                Git.reloadAndApply(#{bReloadAndApplyIgnoreManual});
             });
 
             $("#imitate").click(function() {

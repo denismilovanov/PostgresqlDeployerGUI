@@ -126,7 +126,8 @@ class RepositoryController {
     // action index
     public function index(Request $request, Application $app) {
         return $app['twig']->render('/index.haml', array(
-            'bReloadAndApply' => DBRepository::getSettingValue('reload_and_apply.active'),
+            'bReloadAndApply' => (bool)DBRepository::getSettingValue('reload_and_apply.active'),
+            'bReloadAndApplyIgnoreManual' => (bool)DBRepository::getSettingValue('reload_and_apply.ignore_manual'),
             'sEnv' => DBRepository::getEnv(),
             'aInitialMessages' => DBRepository::getInitialMessages(),
         ));

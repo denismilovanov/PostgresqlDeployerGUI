@@ -142,7 +142,8 @@ Example:
                 "exclude_regexp": "(public\\.not_under_git_table)|(main\\.table_number_\\d+)"
             },
             "reload_and_apply": {
-                "active": true
+                "active": true,
+                "ignore_manual": false
             },
             "plpgsql_check": {
                 "active": false,

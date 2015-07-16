@@ -221,10 +221,13 @@ Git = {
         );
     },
 
-    reloadAndApply: function() {
+    reloadAndApply: function(ignore_manual) {
+        ignore_manual = ignore_manual || false;
+
         Git.checkout(Git.last_hash, false, function() {
             // check all checkboxes (they are not checked by default)
-            $(".apply").prop('checked', true);
+            // if we need to ignore manual row filter them out
+            (ignore_manual ? $(".apply").filter('[manual!=true]') : $(".apply")).prop('checked', true);
             //
             Git.apply();
         })
