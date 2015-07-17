@@ -207,6 +207,7 @@ class DBRepository
             if ($sBranch and $sBranch[0] == '*') {
                 $sBranch = str_replace("* ", "", $sBranch);
                 $sBranch = str_replace("(detached from ", "", $sBranch);
+                $sBranch = str_replace("(HEAD detached at ", "", $sBranch); // git 2.0+
                 $sBranch = str_replace(")", "", $sBranch);
                 $sBranch = trim($sBranch);
                 return $sBranch;
