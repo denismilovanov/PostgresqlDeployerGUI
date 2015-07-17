@@ -194,3 +194,8 @@ tt {
     padding: 20px;
     overflow: hidden;
 }
+
+.affix {
+    width: inherit;
+    top: 5px;
+}

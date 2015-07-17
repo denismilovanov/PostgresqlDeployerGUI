@@ -34,8 +34,8 @@
                         %span#messages-panel-anchor
 
             %td{ :style => "width: 180px;" }
-                .panel.panel-default
-                    .panel-body{ :style => "height: 180px; text-align: center;" }
+                .panel.panel-default#control-buttons
+                    .panel-body{ :style => "max-height: 180px; text-align: center;" }
                         / control panel
                         %button.btn.btn-success.btn-lg#apply{ :type => "button", :style => "font-weight: bold;" }
                             Apply
@@ -302,11 +302,24 @@
         {{/schemas}}
     / end of template
 
-
+    %script
+        Git.interface = #{jInterface | raw}
 
     :javascript
 
         $(window).ready(function() {
+
+            if (Git.interface.sticky_control_buttons) {
+                $(window).resize(function() {
+                    $('#control-buttons').affix('checkPosition');
+                });
+
+                $('#control-buttons').affix({
+                    offset: {
+                        top: $('#control-buttons').offset().top
+                    }
+                });
+            }
 
             Git.diff_template = $("#diff-template").html();
             Git.commits_template = $("#commits-template").html();

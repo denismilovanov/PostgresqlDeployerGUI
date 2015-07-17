@@ -128,6 +128,7 @@ class RepositoryController {
         return $app['twig']->render('/index.haml', array(
             'bReloadAndApply' => (bool)DBRepository::getSettingValue('reload_and_apply.active'),
             'bReloadAndApplyIgnoreManual' => (bool)DBRepository::getSettingValue('reload_and_apply.ignore_manual'),
+            'jInterface' => json_encode(DBRepository::getSettingValue('interface')),
             'sEnv' => DBRepository::getEnv(),
             'aInitialMessages' => DBRepository::getInitialMessages(),
         ));
