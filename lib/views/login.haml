@@ -3,9 +3,11 @@
 - block content
 
     :javascript
-
         $(window).ready(function() {
-
+            if (#{sAuthorizationError}) {
+                Messager.flash('Unable to connect');
+                setTimeout("Messager.hideFlash();", 700);
+            }
         });
 
     %form{ :action => "?", :method => "post" }
@@ -17,7 +19,7 @@
                 %br
                 %input.form-control{ :name => "password", :type => "password", :placeholder => "password" }
                 %br
-                %button.btn.btn-default{ :type => "submit" }
+                %button.btn.btn-success{ :type => "submit" }
                     Authorize me
 
 

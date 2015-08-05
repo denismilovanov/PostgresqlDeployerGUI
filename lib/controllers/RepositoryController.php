@@ -101,17 +101,21 @@ class RepositoryController {
         $sDatabaseName = $app['request']->get('database_name');
         $sEmail = (string)$app['request']->get('email');
         $sPassword = (string)$app['request']->get('password');
+        $bAuthorizationError = false;
 
         if ($_SERVER['REQUEST_METHOD'] == 'POST') {
             if ($sCookie = User::login($sEmail, $sPassword)) {
                 $aResponse = $app->redirect("/$sDatabaseName/");
                 return $this->setAuthorizationCookie($aResponse, $sCookie, $sDatabaseName);
+            } else {
+                $bAuthorizationError = true;
             }
         }
 
         return $app['twig']->render('/login.haml', array(
             'sEmail' => $sEmail,
             'sDatabaseName' => $sDatabaseName,
+            'sAuthorizationError' => $bAuthorizationError ? 'true' : 'false', // haml needs
         ));
     }
 
