@@ -140,6 +140,10 @@ class Database
     {
         $sExcludeRegexp = DBRepository::getSettingValue('plpgsql_check.exclude_regexp', '');
 
+        if (! $sExcludeRegexp) {
+            $sExcludeRegexp = ''; // empty string will mean that there is no filter
+        }
+
         // check all nontrigger functions
         $aResult = self::$oDB->selectRecord("
             WITH data AS (
@@ -157,7 +161,10 @@ class Database
                             NOT p.prosrc ~ 'EXECUTE' AND    -- ''don't use record variable as target for dynamic queries or
                                                             --   disable plpgsql_check for functions that use dynamic queries.''
                                                             -- we skip ANY 'execute'-containing function
-                            NOT (n.nspname || '.' || p.proname) ~ ?w -- does not match exclude filter
+                            CASE WHEN ?w != ''
+                                THEN NOT (n.nspname || '.' || p.proname) ~ ?w -- does not match exclude filter
+                                ELSE TRUE -- filter is not set
+                            END
             )
             SELECT *
                 FROM data
@@ -165,7 +172,7 @@ class Database
                 ORDER BY schema_name, object_name
                 LIMIT 1; -- one bad function is enough
         ",
-            $sExcludeRegexp
+            $sExcludeRegexp, $sExcludeRegexp
         );
 
         // do we have at least one bad function?
