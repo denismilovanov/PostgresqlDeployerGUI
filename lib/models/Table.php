@@ -53,7 +53,7 @@ class Table extends DatabaseObject implements IForwardable
 
     public function canBeForwarded()
     {
-        return $this->oDiff->canBeForwarded();
+        return $this->oDiff->canBeForwarded() and $this->oDiff->canBeExecutedInsideATransactionBlock();
     }
 
     public function forward()

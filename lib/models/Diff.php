@@ -38,6 +38,12 @@ class Diff
         return sizeof($this->aDeletions) == 0;
     }
 
+    // file does not contain statements that can not be executed inside a transaction block
+    public function canBeExecutedInsideATransactionBlock() {
+        $sFullDiff = implode("\n", $this->aInsertions) . "\n" . implode("\n", $this->aDeletions);
+        return ! preg_match("~(CONCURRENTLY)|(CREATE\s+TABLESPACE)|(DROP\s+TABLESPACE)~uixs", $sFullDiff, $aMatches);
+    }
+
     //
     public function tableSignatureChanged() {
         $sFullDiff = implode("\n", $this->aInsertions) . "\n" . implode("\n", $this->aDeletions);
