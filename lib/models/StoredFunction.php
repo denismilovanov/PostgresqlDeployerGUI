@@ -96,9 +96,7 @@ class StoredFunction extends DatabaseObject
         $sNewGrants = $this->getGrants($sNewFunctionBody);
         $sOldGrants = $this->getGrants($sOldFunctionBody);
 
-        return  $sNewGrants === false or
-                $sOldGrants === false or
-                $sNewGrants != $sOldGrants;
+        return $sNewGrants != $sOldGrants;
     }
 
     public function applyObject()
