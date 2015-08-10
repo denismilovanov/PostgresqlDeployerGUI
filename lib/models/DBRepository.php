@@ -202,18 +202,28 @@ class DBRepository
     {
         $aBranches = trim(self::$oGit->run('branch'));
         $aBranches = explode("\n", $aBranches);
+
+        $sCurrentBranch = 'master';
+
         foreach ($aBranches as $sBranch) {
             $sBranch = trim($sBranch);
             if ($sBranch and $sBranch[0] == '*') {
                 $sBranch = str_replace("* ", "", $sBranch);
+                $sBranch = str_replace("(no branch)", "", $sBranch); // git 1.7
                 $sBranch = str_replace("(detached from ", "", $sBranch);
                 $sBranch = str_replace("(HEAD detached at ", "", $sBranch); // git 2.0+
                 $sBranch = str_replace(")", "", $sBranch);
                 $sBranch = trim($sBranch);
-                return $sBranch;
+                $sCurrentBranch = $sBranch;
             }
         }
-        return 'master'; // will throw error during checkout (master actually does not exist)
+
+        if (! $sCurrentBranch) {
+            // get hash
+            $sCurrentBranch = trim(self::$oGit->run('rev-parse', array('HEAD')));
+        }
+
+        return $sCurrentBranch;
     }
 
     /**
