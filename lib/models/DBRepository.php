@@ -99,12 +99,17 @@ class DBRepository
 
         // allowed databases
         self::$aDatabases = isset($aDatabases['databases']) ? $aDatabases['databases'] : array();
+
+        // save indexes
+        foreach (self::$aDatabases as $sIndex => $aDatabase) {
+            self::$aDatabases[$sIndex]['index'] = $sIndex;
+        }
     }
 
     public static function sameDatabasesExist()
     {
         $aDatabasesNames = array();
-        foreach (self::$aDatabases as $aDatabase) {
+        foreach (self::getDatabases() as $aDatabase) {
             if (isset($aDatabase['credentials']['db_name'])) {
                 $aDatabasesNames []= $aDatabase['credentials']['db_name'];
             }

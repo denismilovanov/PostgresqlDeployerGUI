@@ -93,7 +93,6 @@ Example:
     {
         "databases": {
             "db1": {
-                "index": "db1",
                 "name": "DB 1",
                 "credentials": {
                     "host": "localhost",
@@ -112,7 +111,6 @@ Example:
                 }
             },
             "db2": {
-                "index": "db2",
                 "name": "DB 2",
                 "credentials": {
                     "host": "localhost",
