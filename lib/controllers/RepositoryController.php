@@ -87,6 +87,8 @@ class RepositoryController {
         $app['twig']->addGlobal('aDatabases', DBRepository::getDatabases());
         $app['twig']->addGlobal('aBranches', DBRepository::getBranches());
         $app['twig']->addGlobal('sCurrentBranch', DBRepository::getCurrentBranch());
+        $app['twig']->addGlobal('sEnv', DBRepository::getEnv());
+        $app['twig']->addGlobal('sWebUser', exec('whoami'));
 
         // this user will be deploying schema
         DatabaseObject::$iCurrentUserId = $aCurrentUser['id'];
@@ -133,7 +135,6 @@ class RepositoryController {
             'bReloadAndApply' => (bool)DBRepository::getSettingValue('reload_and_apply.active'),
             'bReloadAndApplyIgnoreManual' => (bool)DBRepository::getSettingValue('reload_and_apply.ignore_manual'),
             'jInterface' => json_encode(DBRepository::getSettingValue('interface')),
-            'sEnv' => DBRepository::getEnv(),
             'aInitialMessages' => DBRepository::getInitialMessages(),
         ));
     }
@@ -190,7 +191,6 @@ class RepositoryController {
 
         return $app['twig']->render('/view_diff.haml', array(
             'aDiff' => DBRepository::getDiffAsHTML($sSchemaName, $sObjectIndex, $sFilename),
-            'sEnv' => DBRepository::getEnv(),
         ));
     }
 
@@ -230,7 +230,6 @@ class RepositoryController {
         return $app['twig']->render('/define.haml', array(
             'sDefinition' => $sDefinition,
             'sError' => $sError,
-            'sEnv' => DBRepository::getEnv(),
         ));
     }
 
@@ -253,7 +252,6 @@ class RepositoryController {
         return $app['twig']->render('/describe.haml', array(
             'sDescription' => $sDescription,
             'sError' => $sError,
-            'sEnv' => DBRepository::getEnv(),
         ));
     }
 
@@ -290,7 +288,6 @@ class RepositoryController {
 
         return $app['twig']->render('/download_definitions.haml', array(
             'sError' => $aDefinitions['error'],
-            'sEnv' => DBRepository::getEnv(),
         ));
     }
 
