@@ -280,4 +280,18 @@ class RepositoryController {
         return $app->json($aResult);
     }
 
+    // download file with all definitions (html)
+    public function downloadDefinitions(Request $request, Application $app) {
+        $aDefinitions = DBRepository::createDefinitionsFile();
+
+        if (! $aDefinitions['error']) {
+            return $app->sendFile($aDefinitions['file_name'], 200, array('Content-type' => 'text/sql'), 'attachment');
+        }
+
+        return $app['twig']->render('/download_definitions.haml', array(
+            'sError' => $aDefinitions['error'],
+            'sEnv' => DBRepository::getEnv(),
+        ));
+    }
+
 }

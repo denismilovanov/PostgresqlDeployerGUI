@@ -140,6 +140,15 @@ class Table extends DatabaseObject implements IForwardable
         $sOutput = preg_replace("~\\n\\n~uixs", "\n", $sOutput);
         $sOutput = preg_replace("~\\n\\n~uixs", "\n", $sOutput);
 
+        // cut sequences, they are stored apart
+        $sOutput = preg_replace("~CREATE\sSEQUENCE.+?;~uixs", "", $sOutput);
+        $sOutput = preg_replace("~ALTER\sSEQUENCE.+?;~uixs", "", $sOutput);
+
+        // change schema (pg_dump sets it through search_path)
+        $sOutput = preg_replace("~ALTER\sTABLE\sONLY~uixs", "ALTER TABLE", $sOutput);
+        $sOutput = preg_replace("~CREATE\s(TABLE|INDEX)\s(.+?)~uixs", "CREATE $1 " . $this->sSchemaName . ".$2", $sOutput);
+        $sOutput = preg_replace("~ALTER\s(TABLE|INDEX)\s(.+?)~uixs", "ALTER $1 " . $this->sSchemaName . ".$2", $sOutput);
+
         $sOutput = trim($sOutput);
 
         return array(

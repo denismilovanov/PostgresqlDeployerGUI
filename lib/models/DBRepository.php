@@ -1335,6 +1335,100 @@ class DBRepository
         return $oObject->drop();
     }
 
+    /**
+     * Prepares archive (tar.gz) with definitions of schema objects
+     *
+     * @return array file_name and error
+     */
+
+    public static function createDefinitionsFile()
+    {
+        $sDatabaseWithTimestamp = self::$sDatabase . '_' . date("Y_m_d_H_i_s");
+
+        // dir to store files
+        $sBaseDirectory = sys_get_temp_dir() . '/' . $sDatabaseWithTimestamp . '/';
+        if (! file_exists($sBaseDirectory)) {
+            mkdir($sBaseDirectory, 0755, true);
+        }
+
+        // all schemas in database
+        $aSchemas = self::getSchemas();
+        $sExcludeRegexpShowObjectsNotInGit = self::getSettingValue('not_in_git.exclude_regexp', '');
+
+        // for each schema
+        foreach ($aSchemas as $sSchema) {
+
+            // for each object type - index
+            foreach (self::getObjectsIndexes() as $sObjectIndex) {
+
+                // ALL objects in database
+                $aObjects = Database::getObjectsAsVirtualFiles($sSchema, $sObjectIndex);
+
+                if ($sExcludeRegexpShowObjectsNotInGit) {
+                    // filter objects using not_in_git.exclude_regexp
+                    foreach ($aObjects as $sKey => $aObjectData) {
+                        $sObjectNameWithSchema = $sSchema . '.' . $sKey;
+                        if (preg_match('~' . $sExcludeRegexpShowObjectsNotInGit . '~uixs', $sObjectNameWithSchema)) {
+                            // skip
+                            unset($aObjects[$sKey]);
+                        }
+                    }
+                }
+
+                // removing objects under git (file exists)
+                foreach ($aObjects as $sObjectName => $aObject) {
+                    $sObjectFileName = self::getAbsoluteFileName(self::makeRelativeFileName($sSchema, $sObjectIndex, $sObjectName));
+                    if (file_exists($sObjectFileName)) {
+                        unset($aObjects[$sObjectName]);
+                    }
+                }
+
+                // iterate through objects not in git
+                foreach ($aObjects as $sObjectName => $aObject) {
+                    // get definition
+                    $aDefinition = self::define($sSchema, $sObjectIndex, $sObjectName);
+                    if ($sDefinition = $aDefinition['definition']) {
+                        // file for definition
+                        $sFileName = $sBaseDirectory . self::makeRelativeFileName($sSchema, $sObjectIndex, $sObjectName);
+                        // dir of this file
+                        $sDirectoryName = dirname($sFileName);
+                        if (! file_exists($sDirectoryName)) {
+                            mkdir($sDirectoryName, 0755, true);
+                        }
+                        // save it
+                        file_put_contents($sFileName, $sDefinition);
+                    } else {
+                        // error
+                        return array(
+                            'file_name' => '',
+                            'error' => $aDefinition['error'],
+                        );
+                    }
+                }
+            }
+        }
+
+        // now we gonna pack files
+        $sFileName = sys_get_temp_dir() . '/' . $sDatabaseWithTimestamp . '.tar.gz';
+
+        $sError = '';
+        self::callExternalTool('tar.gz', array($sFileName, $sBaseDirectory), $sError);
+
+        // remove dir
+        self::callExternalTool('rm', array('-rf', $sBaseDirectory), $sError);
+
+        return array(
+            'file_name' => $sFileName,
+            'error' => $sError,
+        );
+    }
+
+    /**
+     * Calls external utility
+     *
+     * @return string output
+     */
+
     public static function callExternalTool($sTool, $aCmd, & $sError = '')
     {
         $aAdditionalCmd = array();
@@ -1358,6 +1452,19 @@ class DBRepository
                 '-p', $aCredentials['port'],
                 $aCredentials['db_name']
             );
+        } else if ($sTool == 'tar.gz') {
+            $sCmd = 'tar';
+            // files and dirs
+            $aAdditionalCmd = array(
+                $aCmd[0], // target file
+                '-C',     // working dir:
+                $aCmd[1], //
+                '.'       //
+            );
+            // options
+            $aCmd = array('zcvfP');
+        } else {
+            $sCmd = $sTool;
         }
 
         // merge command and its arguments

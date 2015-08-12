@@ -69,6 +69,8 @@ $app->post('/{database_name}/{schema_name}/{object_index}/{file_name}/drop/', 'R
 
 $app->post('{database_name}/apply/', 'RepositoryController::apply')->before('RepositoryController::useDatabase');
 
+$app->get('{database_name}/tools/download_definitions/', 'RepositoryController::downloadDefinitions')->before('RepositoryController::useDatabase');
+
 $app->run();
 
 

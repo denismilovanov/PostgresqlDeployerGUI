@@ -99,6 +99,13 @@ class Sequence extends DatabaseObject implements IForwardable
         $sOutput = preg_replace("~\\n\\n~uixs", "\n", $sOutput);
         $sOutput = preg_replace("~\\n\\n~uixs", "\n", $sOutput);
 
+        // alter table works too
+        $sOutput = preg_replace("~ALTER\sTABLE~uixs", "ALTER SEQUENCE", $sOutput);
+
+        // change schema (pg_dump sets it through search_path)
+        $sOutput = preg_replace("~CREATE\s(SEQUENCE)\s(.+?)~uixs", "CREATE $1 " . $this->sSchemaName . ".$2", $sOutput);
+        $sOutput = preg_replace("~ALTER\s(SEQUENCE)\s(.+?)~uixs", "ALTER $1 " . $this->sSchemaName . ".$2", $sOutput);
+
         $sOutput = trim($sOutput);
 
         return array(

@@ -88,6 +88,12 @@
     / div to show diff between git and database
     #diff
 
+    .panel.panel-default
+        .panel-body
+            %button.btn.bts-sm.btn-info#download-definitions{ :type => "submit" }
+                Download definitions
+
+
     / template for commits
     %script{ :id => "commits-template", :type => "text/template" }
         {{#commits}}
@@ -341,6 +347,10 @@
 
             $("#reload-current-branch").click(function() {
                 Git.checkout(Git.last_hash);
+            });
+
+            $("#download-definitions").click(function() {
+                window.location = '/' + Git.database_name + '/tools/download_definitions/';
             });
 
         });

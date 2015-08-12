@@ -143,9 +143,10 @@ class StoredFunction extends DatabaseObject
 
     public function define()
     {
+        $aDescription = $this->describe();
         return array(
-            'definition' => '',
-            'error' => '',
+            'definition' => $aDescription['description'],
+            'error' => $aDescription['error'],
         );
     }
 
