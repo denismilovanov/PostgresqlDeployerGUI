@@ -152,15 +152,37 @@ class StoredFunction extends DatabaseObject
 
     public function describe()
     {
-        $sError = '';
-        $sOutput = DBRepository::callExternalTool(
-            'psql',
-            array('-c\sf ' . $this->sSchemaName . '.' . $this->sObjectName),
-            $sError
+        $aFunctions = self::$oDB->selectColumn("
+            SELECT p.oid::regprocedure
+                FROM pg_catalog.pg_proc AS p
+                LEFT JOIN pg_catalog.pg_namespace n ON
+                    n.oid = p.pronamespace
+                WHERE   n.nspname = ?w AND
+                        p.proname = ?w;
+        ",
+            $this->sSchemaName,
+            $this->sObjectName
         );
 
+        $sOutput = $sError = '';
+
+        foreach ($aFunctions as $sFunction) {
+            $sOutput .= DBRepository::callExternalTool(
+                'psql',
+                array('-c\sf ' . $sFunction),
+                $sError
+            );
+
+            $sOutput .= "\n\n\n";
+
+            if ($sError) {
+                $sOutput = '';
+                break;
+            }
+        }
+
         return array(
-            'description' => $sOutput,
+            'description' => trim($sOutput),
             'error' => $sError,
         );
     }
