@@ -46,8 +46,8 @@ class Diff
 
     //
     public function tableSignatureChanged() {
-        $sFullDiff = implode("\n", $this->aInsertions) . "\n" . implode("\n", $this->aDeletions);
-        return preg_match("~(ADD)|(DROP)\s+COLUMN~uixs", $sFullDiff, $aMatches);
+        $sFullDiff = implode(PHP_EOL, $this->aInsertions) . PHP_EOL . implode(PHP_EOL, $this->aDeletions);
+        return preg_match("~(?:ADD)|(?:DROP|ALTER)\s+COLUMN~uis", $sFullDiff);
     }
 
     //
