@@ -136,8 +136,24 @@ class Database
         );
     }
 
-    public static function checkAllStoredFunctionsByPlpgsqlCheck()
+    public static function checkAllStoredFunctionsByPlpgsqlCheck(array $aFunctions)
     {
+        $sCheckStrategy = DBRepository::getSettingValue('plpgsql_check.targets', 'all');
+
+        $bCheckOnlySelectedFunctions = ('only_selected' == $sCheckStrategy);
+        if ($bCheckOnlySelectedFunctions) {
+            // check only selected or depency functions
+            $aCheckFunctions = [];
+            foreach ($aFunctions as $f) {
+                $aCheckFunctions[] = $f->sSchemaName .'.'. $f->sObjectName;
+            }
+
+            // no functions deploy, no functions to check
+            if (empty($aCheckFunctions)) {
+                return;
+            }
+        }
+
         $sExcludeRegexp = DBRepository::getSettingValue('plpgsql_check.exclude_regexp', '');
 
         if (! $sExcludeRegexp) {
@@ -165,6 +181,12 @@ class Database
                                 THEN NOT (n.nspname || '.' || p.proname) ~ ?w -- does not match exclude filter
                                 ELSE TRUE -- filter is not set
                             END
+
+                            -- check only selected functions
+                            AND CASE WHEN ?d::bool
+                                THEN (n.nspname || '.' || p.proname) IN (?w)
+                                ELSE TRUE
+                            END
             )
             SELECT *
                 FROM data
@@ -172,7 +194,8 @@ class Database
                 ORDER BY schema_name, object_name
                 LIMIT 1; -- one bad function is enough
         ",
-            $sExcludeRegexp, $sExcludeRegexp
+            $sExcludeRegexp, $sExcludeRegexp,
+            $bCheckOnlySelectedFunctions, ($bCheckOnlySelectedFunctions ? $aCheckFunctions : NULL)
         );
 
         // do we have at least one bad function?

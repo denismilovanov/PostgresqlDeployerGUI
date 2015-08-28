@@ -1225,7 +1225,7 @@ class DBRepository
             //
             if (self::getSettingValue('plpgsql_check.active')) {
                 // let's check stored functions
-                Database::checkAllStoredFunctionsByPlpgsqlCheck();
+                Database::checkAllStoredFunctionsByPlpgsqlCheck($aFunctions);
                 // says rollback and throws exception if check fails
             }
 

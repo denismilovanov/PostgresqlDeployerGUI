@@ -3,7 +3,7 @@ PostgresqlDeployerGUI
 
 ### Demo
 
-[http://pg.denismilovanov.net](http://pg.denismilovanov.net)  
+[http://pg.denismilovanov.net](http://pg.denismilovanov.net)
 E-mail `guest`, password `guest`.
 
 ### Intro
@@ -38,7 +38,7 @@ PostgreSQLDeployerGUI works with 6 database objects types:
 * functions (PostgreSQL stored procedures),
 * sequencies,
 * triggers,
-* arbitrary queries.  
+* arbitrary queries.
 
 Tables DDL's (`CREATE TABLE`, `CREATE INDEX`, `ALTER TABLE`) are committed into git and can be
 deployed automatically if 2 conditions are satisfied:
@@ -102,9 +102,9 @@ Example:
                     "db_name": "db1"
                 },
                 "git_root": "/home/user/work/project/db1_git_root/"
-                
+
                 ,"schemas_path": "dir1/dir2/schemas/" #optinal, 'schemas/' by default
-                
+
                 ,"settings": {
                     #optional settings overloading global
                     #see settings.json
@@ -145,7 +145,8 @@ Example:
             },
             "plpgsql_check": {
                 "active": false,
-                "exclude_regexp": "tricky_functions_schema\\.tricky_"
+                "exclude_regexp": "tricky_functions_schema\\.tricky_",
+                "targets": "all"
             },
             "paths": {
                 "pg_bin": "/usr/lib/postgresql/%v/bin/"
@@ -159,14 +160,19 @@ Example:
         }
     }
 
-Explanation:
+Available settings:
 
-1) not_in_git - this option tells if non-git database objects are shown (they will be marked as `NOT IN GIT`),  
-2) reload_and_apply - show 'Reload and apply' button (makes sense for development purposes only, not in production),  
-3) plpgsql_check - this option runs checking of all stored functions after deployment but before final commit (checking is performed by [plpgsql_check extension](https://github.com/okbob/plpgsql_check.git),  
-4) pg_bin - path to psql and pg_dump executables (%v will be replaced to MAJOR.MINOR version of current database you work at),  
-5) commits_list.limit - max amount of commits to show,  
-6) interface - some interface features.  
+- not_in_git - this option tells if non-git database objects are shown (they will be marked as `NOT IN GIT`),
+- reload_and_apply - show 'Reload and apply' button (makes sense for development purposes only, not in production),
+- plpgsql_check - this option runs checking of all stored functions after deployment but before final commit (checking is performed by [plpgsql_check extension](https://github.com/okbob/plpgsql_check.git)
+  - active - use plpgsql_check or not. boolean, default false
+  - exclude_regexp - functions, that match this regexp, will be not checked
+  - targets - specify check functions: "all" for check all existing functions (default) or "only_selected" for check only functions for deploy
+- paths
+  - pg_bin - path to psql and pg_dump executables (%v will be replaced to MAJOR.MINOR version of current database you work at),
+- commits_list
+  - limit - max amount of commits to show,
+- interface - some interface features.
 
 You may omit any of these options.
 
@@ -293,7 +299,7 @@ Trigger file name should consist of table name and trigger_name (`table_name.tri
         EXECUTE PROCEDURE arbitrary_schema.trigger_procedure();
 
 Trigger will be dropped and deployed again as soon as file content is changed (exactly like `seed` objects).
-    
+
 ### Notes
 
 1. Do not forget that `CREATE / DROP INDEX CONCURRENTLY` cannot be performed within a transaction block.
