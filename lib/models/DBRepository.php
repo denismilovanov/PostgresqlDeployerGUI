@@ -65,17 +65,15 @@ class DBRepository
 
     public static function getSettingValue($sIndex, $mDefaultValue = false)
     {
-        $aIndexes = explode(".", $sIndex);
-        $sExpression = '';
-        foreach ($aIndexes as $sIndex) {
-            $sExpression .= "['" . $sIndex . "']";
+        $aSegment = self::$aSettings; //don't worry about performance, this use copy-on-write
+        foreach (explode(".", $sIndex) as $sKey) {
+            if ( ! is_array($aSegment) || ! array_key_exists($sKey, $aSegment)) {
+                return $mDefaultValue;
+            }
+            $aSegment = $aSegment[ $sKey ];
         }
-        if (eval('return isset(self::$aSettings' . $sExpression . ');')) {
-            $mValue = eval('return self::$aSettings' . $sExpression . ';');
-            return $mValue;
-        } else {
-            return $mDefaultValue;
-        }
+
+        return $aSegment;
     }
 
     /**
