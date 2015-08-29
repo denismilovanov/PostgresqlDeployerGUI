@@ -67,10 +67,10 @@ class DBRepository
     {
         $aSegment = self::$aSettings; //don't worry about performance, this use copy-on-write
         foreach (explode(".", $sIndex) as $sKey) {
-            if ( ! is_array($aSegment) || ! array_key_exists($sKey, $aSegment)) {
+            if (! is_array($aSegment) or ! array_key_exists($sKey, $aSegment)) {
                 return $mDefaultValue;
             }
-            $aSegment = $aSegment[ $sKey ];
+            $aSegment = $aSegment[$sKey];
         }
 
         return $aSegment;
