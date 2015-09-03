@@ -1395,12 +1395,16 @@ class DBRepository
                         }
                         // save it
                         file_put_contents($sFileName, $sDefinition);
-                    } else {
+                    } else if ($sError = $aDefinition['error']) {
                         // error
                         return array(
                             'file_name' => '',
-                            'error' => $aDefinition['error'] ? : ('Error at ' . $sSchema . '/' . $sObjectIndex . '/' . $sObjectName),
+                            'error' => $sError,
                         );
+                    } else {
+                        // strange situation: no definition, no error
+                        // let's skip it
+                        ;
                     }
                 }
             }
