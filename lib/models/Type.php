@@ -18,7 +18,7 @@ class Type extends DatabaseObject
 
     public function getObjectDependencies()
     {
-        if (! $this->signatureChanged()) {
+        if (! $this->signatureChanged() or ! $this->objectExists()) {
             return array();
         }
         return self::$oDB->selectTable("
