@@ -1399,7 +1399,7 @@ class DBRepository
                         // error
                         return array(
                             'file_name' => '',
-                            'error' => $aDefinition['error'],
+                            'error' => $aDefinition['error'] ? : ('Error at ' . $sSchema . '/' . $sObjectIndex . '/' . $sObjectName),
                         );
                     }
                 }
