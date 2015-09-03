@@ -78,6 +78,10 @@ Setup your web server:
 
 Route all queries to `htdocs/index.php`.
 
+Or use built-in php server:
+
+    php -S 0.0.0.0:8000 -t htdocs/
+
 Perform on your database(s) (psql):
 
     \i db.schema/create_schema.sql
