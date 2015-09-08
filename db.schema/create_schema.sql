@@ -169,6 +169,10 @@ BEGIN
         WHERE   typname = s_type_name AND
                 typnamespace = (SELECT oid FROM pg_namespace WHERE nspname = s_schema_name);
 
+    -- to prevent NULL in array, it breaks &&, see below
+    i_type_id := coalesce(i_type_id, 0);
+    i_type_array_id := coalesce(i_type_array_id, 0);
+
     -- search for functions
     FOR r_func IN SELECT    s_database_name,
                             n.nspname::varchar AS schema_name,
@@ -225,6 +229,10 @@ BEGIN
         FROM pg_type
         WHERE   typname = s_table_name AND
                 typnamespace = (SELECT oid FROM pg_namespace WHERE nspname = s_schema_name);
+
+    -- to prevent NULL in array, it breaks &&, see below
+    i_table_id := coalesce(i_table_id, 0);
+    i_table_array_id := coalesce(i_table_array_id, 0);
 
     -- search for functions
     FOR r_func IN SELECT    s_database_name,
