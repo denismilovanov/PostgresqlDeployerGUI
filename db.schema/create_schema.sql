@@ -43,7 +43,8 @@ INSERT INTO postgresql_deployer.migrations_objects
         (5, 'sequences', 2, '{"is_forwardable":true}'),
         (6, 'queries_before', 1, '{"is_forwardable":true}'),
         (7, 'queries_after', 100, '{"is_forwardable":true}'),
-        (8, 'triggers', 7, '{"is_forwardable":false}');
+        (8, 'triggers', 7, '{"is_forwardable":false}'),
+        (9, 'views', 8, '{"is_forwardable":false}');
 
 ----------------------------------------------------------------------------
 -- actual information about objects deployed

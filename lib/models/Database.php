@@ -21,6 +21,19 @@ class Database
                 $sSchema
             );
 
+        } else if ($sObjectIndex == 'views') {
+
+            return self::$oDB->selectIndexedTable("
+                SELECT  viewname,
+                        viewname AS file,
+                        '' AS hash
+                    FROM pg_views
+                    WHERE schemaname = ?w
+                    ORDER BY viewname;
+            ",
+                $sSchema
+            );
+
         } else if ($sObjectIndex == 'sequences') {
 
             return self::$oDB->selectIndexedTable("

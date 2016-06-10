@@ -31,13 +31,14 @@ Git (where I offer to store schema) is already migration-fashioned system. You m
 get schema state at any time in the past to rollback if it is needed, or say `git pull` and see the difference between states
 (if you organize database objects storage).
 
-PostgreSQLDeployerGUI works with 6 database objects types:
+PostgreSQLDeployerGUI works with 8 database objects types:
 * tables,
 * seeds (data of system dictionaries, mappings, settings, etc),
 * types (PostgreSQL user types),
 * functions (PostgreSQL stored procedures),
 * sequencies,
 * triggers,
+* views (limited support, actually you may only download definitions), 
 * arbitrary queries.
 
 Tables DDL's (`CREATE TABLE`, `CREATE INDEX`, `ALTER TABLE`) are committed into git and can be
